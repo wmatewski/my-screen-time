@@ -1,0 +1,48 @@
+runConfig:
+  minInstances: 0
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+
+env:
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://your-app-hosting-domain.web.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    value: https://your-project-id.supabase.co
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    secret: SUPABASE_PUBLISHABLE_KEY
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: SUPABASE_SECRET_KEY
+    secret: SUPABASE_SECRET_KEY
+    availability:
+      - RUNTIME
+
+  - variable: ADMIN_INVITE_REDIRECT_URL
+    value: https://your-app-hosting-domain.web.app/auth/callback?next=/admin/setup-password
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_RECOMMENDED_DAILY_LIMIT_MINUTES
+    value: "120"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SESSION_COOKIE_NAME
+    value: st_session_id
+    availability:
+      - BUILD
+      - RUNTIME
