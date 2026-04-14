@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#005768",
+                    "on-background": "#2c2f31",
+                    "secondary": "#4d5d73",
+                    "secondary-container": "#c8d8f3",
+                    "on-secondary-fixed-variant": "#46556b",
+                    "tertiary": "#00675c",
+                    "on-surface-variant": "#595c5e",
+                    "surface-container": "#e5e9eb",
+                    "surface-dim": "#d0d5d8",
+                    "secondary-dim": "#415166",
+                    "primary-fixed": "#66defe",
+                    "tertiary-fixed": "#65fde6",
+                    "error": "#b31b25",
+                    "surface-container-highest": "#d9dde0",
+                    "surface-container-high": "#dfe3e6",
+                    "on-primary-fixed": "#003843",
+                    "surface-tint": "#006478",
+                    "on-tertiary-fixed": "#004a41",
+                    "primary-dim": "#005869",
+                    "on-tertiary": "#c1fff2",
+                    "secondary-fixed-dim": "#bacae4",
+                    "primary-fixed-dim": "#56d0ef",
+                    "inverse-on-surface": "#9a9d9f",
+                    "tertiary-container": "#65fde6",
+                    "inverse-primary": "#66defe",
+                    "error-container": "#fb5151",
+                    "on-error": "#ffefee",
+                    "on-secondary": "#edf3ff",
+                    "on-surface": "#2c2f31",
+                    "primary": "#006478",
+                    "tertiary-dim": "#005a50",
+                    "inverse-surface": "#0b0f10",
+                    "secondary-fixed": "#c8d8f3",
+                    "surface-bright": "#f5f7f9",
+                    "on-tertiary-container": "#005e54",
+                    "on-error-container": "#570008",
+                    "on-secondary-fixed": "#29394e",
+                    "primary-container": "#66defe",
+                    "on-tertiary-fixed-variant": "#00695e",
+                    "outline": "#747779",
+                    "surface-variant": "#d9dde0",
+                    "on-primary": "#dff7ff",
+                    "on-secondary-container": "#3c4c61",
+                    "surface-container-low": "#eef1f3",
+                    "on-primary-container": "#004d5c",
+                    "surface": "#f5f7f9",
+                    "error-dim": "#9f0519",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#abadaf",
+                    "tertiary-fixed-dim": "#54eed8",
+                    "background": "#f5f7f9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- NavigationDrawer Shell -->
+<aside class="hidden md:flex flex-col gap-2 p-6 h-screen w-72 rounded-r-xl bg-[#f5f7f9] dark:bg-slate-900 sticky top-0">
+<!-- Brand Identity -->
+<div class="mb-10 px-4 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">blur_on</span>
+</div>
+</div>
+<!-- Header Profile Section -->
+<div class="mb-8 px-4 flex flex-col items-start">
+<div class="w-12 h-12 rounded-full overflow-hidden mb-3 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a system administrator in a clean office environment, soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYSNC79GHCYFJULBzAyrFMGLR7FamigxE33-CN19Dzz7Hj5g9PH3LBX8KN3WGj2ut39VXS0xzP-gEWWiWZetwDMWh0YJK6jggr8dAbB2hCj1u1FB1N0Y0l6rU9XdSgP68XElWIbEjMyFrEX7afQdKTkyIDIS0vfxkNl2STCvMca1GMeaPsIIsSiJad6qymr2qTZqj2xW4EuKp9vTDMjFNFneVsnjpkS16OIE8U8V3oBoK8sP5MR1eRAFMsdpiBF_iyKbL1rj1bwXc"/>
+</div>
+<p class="text-[#006478] font-bold text-sm">Administrator Systemu</p>
+<p class="text-[#2c2f31]/70 dark:text-slate-400 text-xs">Witaj ponownie</p>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 text-[#006478] font-semibold rounded-2xl shadow-sm transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-sm">Analityka</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-[#2c2f31]/70 dark:text-slate-400 hover:translate-x-1 transition-transform hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-2xl" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-sm">Zarządzanie</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-[#2c2f31]/70 dark:text-slate-400 hover:translate-x-1 transition-transform hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-2xl" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-sm">Raporty</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-[#2c2f31]/70 dark:text-slate-400 hover:translate-x-1 transition-transform hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-2xl" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm">Ustawienia</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 min-h-screen p-6 md:p-10 lg:p-14 overflow-y-auto">
+<!-- TopAppBar Contextual -->
+<header class="flex justify-between items-center w-full mb-12">
+<div>
+<h1 class="text-4xl font-black tracking-tight text-on-background">Statystyki Systemu</h1>
+<p class="text-on-surface-variant mt-2 font-medium">Przegląd aktywności i wydajności platformy Aura Clarity</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-low text-on-surface hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Section 1: Bento Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between shadow-[0_20px_40px_rgba(44,47,49,0.03)] hover:scale-[1.02] transition-transform duration-300">
+<div class="flex justify-between items-start">
+<div class="p-3 bg-primary-container/20 rounded-2xl text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<span class="text-xs font-bold text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12%
+                    </span>
+</div>
+<div class="mt-8">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Łączna liczba użytkowników</p>
+<h3 class="text-3xl font-extrabold text-on-surface tracking-tight">12,482</h3>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between shadow-[0_20px_40px_rgba(44,47,49,0.03)] hover:scale-[1.02] transition-transform duration-300">
+<div class="flex justify-between items-start">
+<div class="p-3 bg-secondary-container/30 rounded-2xl text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">phone_iphone</span>
+</div>
+<span class="text-xs font-bold text-error flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_down</span> -2%
+                    </span>
+</div>
+<div class="mt-8">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Średni czas iOS</p>
+<h3 class="text-3xl font-extrabold text-on-surface tracking-tight">24m 15s</h3>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between shadow-[0_20px_40px_rgba(44,47,49,0.03)] hover:scale-[1.02] transition-transform duration-300 border-2 border-primary/5">
+<div class="flex justify-between items-start">
+<div class="p-3 bg-tertiary-container/30 rounded-2xl text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">android</span>
+</div>
+<span class="text-xs font-bold text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +5.4%
+                    </span>
+</div>
+<div class="mt-8">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Średni czas Android</p>
+<h3 class="text-3xl font-extrabold text-on-surface tracking-tight">31m 42s</h3>
+</div>
+</div>
+</section>
+<!-- Section 2: Insights Row -->
+<section class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-10">
+<!-- Systems Distribution (Glassmorphism Card) -->
+<div class="lg:col-span-2 bg-surface-container-lowest/80 backdrop-blur-xl p-8 rounded-xl shadow-[0_20px_40px_rgba(44,47,49,0.03)] flex flex-col">
+<h4 class="text-xl font-bold mb-8 text-on-surface">Najpopularniejsze systemy</h4>
+<div class="flex-1 flex flex-col justify-center gap-8">
+<div class="space-y-3">
+<div class="flex justify-between text-sm font-bold">
+<span>Android</span>
+<span class="text-primary">58%</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 58%"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-sm font-bold">
+<span>iOS</span>
+<span class="text-secondary">34%</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 34%"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-sm font-bold">
+<span>Inne</span>
+<span class="text-outline">8%</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 8%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Device Popularity Ranking -->
+<div class="lg:col-span-3 bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(44,47,49,0.03)]">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-xl font-bold text-on-surface">Ranking popularności urządzeń</h4>
+<button class="text-primary text-sm font-bold hover:underline">Szczegóły</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container-high transition-colors">
+<div class="w-10 h-10 flex items-center justify-center font-black text-primary bg-white rounded-xl shadow-sm">1</div>
+<div>
+<p class="font-bold text-on-surface">iPhone 15 Pro</p>
+<p class="text-xs text-on-surface-variant">2,104 aktywnych sesji</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container-high transition-colors">
+<div class="w-10 h-10 flex items-center justify-center font-black text-on-surface-variant bg-white rounded-xl shadow-sm">2</div>
+<div>
+<p class="font-bold text-on-surface">Samsung S24 Ultra</p>
+<p class="text-xs text-on-surface-variant">1,892 aktywnych sesji</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container-high transition-colors">
+<div class="w-10 h-10 flex items-center justify-center font-black text-on-surface-variant bg-white rounded-xl shadow-sm">3</div>
+<div>
+<p class="font-bold text-on-surface">iPhone 14</p>
+<p class="text-xs text-on-surface-variant">1,450 aktywnych sesji</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container-high transition-colors">
+<div class="w-10 h-10 flex items-center justify-center font-black text-on-surface-variant bg-white rounded-xl shadow-sm">4</div>
+<div>
+<p class="font-bold text-on-surface">Google Pixel 8</p>
+<p class="text-xs text-on-surface-variant">1,120 aktywnych sesji</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Recent Sessions Table -->
+<section class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(44,47,49,0.03)]">
+<div class="p-8 border-b border-surface-container-low flex justify-between items-center">
+<h4 class="text-xl font-bold text-on-surface">Ostatnie sesje</h4>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container text-on-surface-variant text-xs font-bold rounded-full">Filtruj</button>
+<button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-full shadow-sm">Eksportuj</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-on-surface-variant/70">Użytkownik</th>
+<th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-on-surface-variant/70">System</th>
+<th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-on-surface-variant/70">Wpisany czas</th>
+<th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-on-surface-variant/70">Data</th>
+<th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-on-surface-variant/70">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/50 flex items-center justify-center text-xs font-bold text-on-secondary-container">MK</div>
+<span class="text-sm font-semibold">Marek Kowalski</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-primary text-lg">android</span> Android 14
+                                </span>
+</td>
+<td class="px-8 py-6 font-mono text-sm">02:45:12</td>
+<td class="px-8 py-6 text-sm text-on-surface-variant">Dzisiaj, 14:22</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-tertiary-container/30 text-tertiary text-[10px] font-black rounded-full uppercase">Aktywna</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container/50 flex items-center justify-center text-xs font-bold text-on-primary-container">AN</div>
+<span class="text-sm font-semibold">Anna Nowak</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-secondary text-lg">phone_iphone</span> iOS 17.4
+                                </span>
+</td>
+<td class="px-8 py-6 font-mono text-sm">00:15:33</td>
+<td class="px-8 py-6 text-sm text-on-surface-variant">Dzisiaj, 13:58</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-black rounded-full uppercase">Zakończona</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/20 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-on-secondary-fixed-variant/20 flex items-center justify-center text-xs font-bold text-on-secondary-fixed-variant">TP</div>
+<span class="text-sm font-semibold">Tomasz Polak</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-primary text-lg">android</span> Android 13
+                                </span>
+</td>
+<td class="px-8 py-6 font-mono text-sm">01:12:05</td>
+<td class="px-8 py-6 text-sm text-on-surface-variant">Wczoraj, 22:15</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-black rounded-full uppercase">Zakończona</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 bg-surface-container-low/30 text-center">
+<button class="text-sm font-bold text-primary hover:opacity-80 transition-opacity">Pokaż wszystkie sesje</button>
+</div>
+</section>
+</main>
+<!-- FAB Suppression Logic: Not rendering on this view per guidelines -->
+</body></html>
