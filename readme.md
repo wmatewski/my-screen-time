@@ -1,0 +1,1 @@
+Prosta aplikacja na projekt szkolny do sredniej korzystania z telefonu
