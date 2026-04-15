@@ -41,6 +41,4 @@ coverage
 .DS_Store
 .vscode
 .idea
-
-.env.example
 ai_context
