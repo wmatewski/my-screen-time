@@ -44,12 +44,12 @@ export const operatingSystemConfig: Record<OperatingSystem, OperatingSystemConfi
       "Windows nie ma jednego uniwersalnego widoku screen time, więc możesz skorzystać z Family Safety, narzędzia producenta albo przepisać wynik z telefonu.",
     settingsButtonLabel: "Otwórz ustawienia Windows",
     settingsHint:
-      "Jeśli korzystasz z telefonu, możesz ręcznie zmienić wykryty system poniżej przed zapisaniem wpisu.",
+      "Jeśli korzystasz z telefonu, możesz ręcznie zmienić wykryty system przed zapisaniem wpisu.",
     settingsLink: "ms-settings:",
     steps: [
       "Otwórz Ustawienia systemu Windows.",
       "Sprawdź raport aktywności lub aplikację Family Safety, jeśli jest dostępna.",
-      "Jeśli mierzysz czas z telefonu, wybierz właściwy system poniżej i wpisz wynik ręcznie.",
+      "Jeśli mierzysz czas z telefonu, wybierz właściwy system i wpisz wynik ręcznie.",
     ],
   },
   macos: {
@@ -95,10 +95,10 @@ export const operatingSystemConfig: Record<OperatingSystem, OperatingSystemConfi
       "Możesz dalej korzystać z aplikacji. Wybierz właściwy system ręcznie przed zapisaniem wyniku.",
     settingsButtonLabel: "Skorzystaj z instrukcji ręcznej",
     settingsHint:
-      "Najlepiej wybierz właściwy system z listy poniżej i wykonaj odpowiadające mu kroki ręcznie.",
+      "Najlepiej wybierz właściwy system ręcznie i wykonaj odpowiadające mu kroki.",
     settingsLink: null,
     steps: [
-      "Wybierz odpowiedni system z listy systemów poniżej.",
+      "Wybierz odpowiedni system ręcznie.",
       "Otwórz ustawienia urządzenia i sprawdź dzisiejszy czas przed ekranem.",
       "Wpisz wynik do formularza i zapisz analizę.",
     ],

@@ -70,7 +70,7 @@ export const buildSessionAnalytics = ({
   let resultLabel = "Dobry";
   let resultTone: SessionAnalytics["resultTone"] = "good";
   let summary =
-    "Mieścisz się w orientacyjnym limicie rekreacyjnego czasu ekranowego dla młodzieży 12-17 lat.";
+    "Mieścisz się w limicie rekreacyjnego czasu ekranowego dla młodzieży 12-17 lat.";
   let guidance =
     "Utrzymaj regularne przerwy, ruch i odkładanie ekranu przed snem, żeby wynik pozostał stabilny.";
 
@@ -78,7 +78,7 @@ export const buildSessionAnalytics = ({
     resultLabel = "Umiarkowany";
     resultTone = "balanced";
     summary =
-      "Jesteś ponad orientacyjnym limitem 2 godzin rekreacyjnego screen time, ale nadal możesz szybko wrócić do lepszej równowagi.";
+      "Jesteś ponad limitem 2 godzin rekreacyjnego screen time, ale nadal możesz szybko wrócić do lepszej równowagi.";
     guidance =
       "Spróbuj skrócić jedną najdłuższą aktywność ekranową dzisiaj o 20-30 minut i porównaj wynik jutro.";
   }
@@ -87,7 +87,7 @@ export const buildSessionAnalytics = ({
     resultLabel = "Wysoki";
     resultTone = "high";
     summary =
-      "Dzisiejszy wynik wyraźnie przekracza orientacyjny limit dla wieku 12-17 lat, więc warto potraktować go jako sygnał do korekty nawyków.";
+      "Dzisiejszy wynik wyraźnie przekracza limit dla wieku 12-17 lat, więc warto potraktować go jako sygnał do korekty nawyków.";
     guidance =
       "Zaplanuj jutro konkretną przerwę offline i ogranicz najbardziej czasochłonną aplikację lub serię treści.";
   }

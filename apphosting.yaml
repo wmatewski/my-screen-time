@@ -1,36 +1,36 @@
 runConfig:
   minInstances: 0
-  maxInstances: 4
+  maxInstances: 5
   concurrency: 80
-  cpu: 1
-  memoryMiB: 1024
+  cpu: 4
+  memoryMiB: 6144
 
 env:
   - variable: NEXT_PUBLIC_APP_URL
-    value: https://your-app-hosting-domain.web.app
+    value: https://screentime.wojticore.pl
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_SUPABASE_URL
-    value: https://your-project-id.supabase.co
+    secret: SCREEN_SUPABASE_URL
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    secret: SUPABASE_PUBLISHABLE_KEY
+    secret: SCREEN_SUPABASE_PUBLISHABLE_KEY
     availability:
       - BUILD
       - RUNTIME
 
   - variable: SUPABASE_SECRET_KEY
-    secret: SUPABASE_SECRET_KEY
+    secret: SCREEN_SUPABASE_SECRET_KEY
     availability:
       - RUNTIME
 
   - variable: ADMIN_INVITE_REDIRECT_URL
-    value: https://your-app-hosting-domain.web.app/auth/callback?next=/admin/setup-password
+    value: https://screentime.wojticore.pl/auth/callback?next=/admin/setup-password
     availability:
       - BUILD
       - RUNTIME

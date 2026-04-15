@@ -7,6 +7,8 @@ import {
   CheckCircle2,
   Clock3,
   Layers3,
+  RefreshCcw,
+  Smartphone,
   Sparkles,
 } from "lucide-react";
 
@@ -42,6 +44,7 @@ export const ScreenTimeExperience = ({
   const [selectedOperatingSystem, setSelectedOperatingSystem] =
     useState<OperatingSystem>(initialOperatingSystem);
   const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
+  const [showSystemPicker, setShowSystemPicker] = useState(false);
   const deferredOperatingSystem = useDeferredValue(selectedOperatingSystem);
   const operatingSystem = getOperatingSystemConfig(deferredOperatingSystem);
 
@@ -62,6 +65,12 @@ export const ScreenTimeExperience = ({
     window.location.href = operatingSystem.settingsLink;
   };
 
+  const handleOperatingSystemChange = (value: OperatingSystem) => {
+    setSelectedOperatingSystem(value);
+    setShowSystemPicker(false);
+    setSettingsFeedback(null);
+  };
+
   return (
     <div className="page-stack">
       {flash ? (
@@ -77,7 +86,7 @@ export const ScreenTimeExperience = ({
           <h1>Zrozum swój dzisiejszy cyfrowy rytm.</h1>
           <p>
             Wykrywamy system, pomagamy znaleźć screen time i od razu porównujemy
-            Twój wynik z orientacyjnym limitem dla wieku 12-17 lat.
+            Twój wynik z limitem dla wieku 12-17 lat.
           </p>
           <div className="stack-row" style={{ marginTop: 24 }}>
             <span className="metric-pill">
@@ -91,40 +100,55 @@ export const ScreenTimeExperience = ({
           </div>
         </article>
 
-        <article className="soft-card invert">
-          <div className="card-title-row">
+        <article className="soft-card invert system-status-card">
+          <div className="system-status-header">
             <div>
-              <div className="eyebrow">Status urządzenia</div>
-              <h2 className="card-title" style={{ marginTop: 12 }}>
-                {operatingSystem.label}
-              </h2>
+              <span className="field-label">Status urządzenia</span>
+              <p className="system-detected-line">
+                <Smartphone size={20} />
+                Wykryto system: {operatingSystem.label}
+              </p>
             </div>
-            <div className="icon-bubble">
-              <CheckCircle2 />
+            <div className="system-status-indicator">
+              <CheckCircle2 size={24} />
             </div>
           </div>
 
-          <p className="muted" style={{ marginTop: 0 }}>
-            {operatingSystem.description}
-          </p>
+          <button
+            type="button"
+            className="system-change-button"
+            onClick={() => setShowSystemPicker((currentValue) => !currentValue)}
+            aria-expanded={showSystemPicker}
+          >
+            Zmień, jeśli to błąd
+            <RefreshCcw size={16} />
+          </button>
 
-          <div className="system-chip-list" style={{ marginTop: 16 }}>
-            {operatingSystemOrder.map((item) => {
-              const itemConfig = getOperatingSystemConfig(item);
+          {showSystemPicker ? (
+            <div className="system-picker-panel">
+              <div className="system-picker-grid">
+                {operatingSystemOrder.map((item) => {
+                  const itemConfig = getOperatingSystemConfig(item);
 
-              return (
-                <button
-                  key={item}
-                  type="button"
-                  className="system-chip"
-                  data-active={selectedOperatingSystem === item}
-                  onClick={() => setSelectedOperatingSystem(item)}
-                >
-                  {itemConfig.label}
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      className="system-picker-option"
+                      data-active={selectedOperatingSystem === item}
+                      onClick={() => handleOperatingSystemChange(item)}
+                    >
+                      <span>{itemConfig.label}</span>
+                      <small>{itemConfig.shortLabel}</small>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="system-picker-note">
+                Zmiana systemu aktualizuje instrukcję i zapis wyniku.
+              </p>
+            </div>
+          ) : null}
         </article>
       </section>
 
@@ -210,8 +234,7 @@ export const ScreenTimeExperience = ({
             </div>
 
             <div className="hint-box">
-              Orientacyjny limit rekreacyjnego screen time dla młodzieży 12-17 lat:
-              do {analytics?.recommendedMinutes ?? 120} minut dziennie.
+              Limit czasu ekranowego dla młodzieży 12-17 lat: do {analytics?.recommendedMinutes ?? 120} minut dziennie.
             </div>
 
             <button className="primary-button" type="submit">
@@ -257,7 +280,7 @@ export const ScreenTimeExperience = ({
               <strong>Brak analizy</strong>
               <span>
                 Po wpisaniu czasu zobaczysz porównanie do innych uczestników i średnich
-                dla wykrytego systemu.
+                dla wybranego systemu.
               </span>
             </div>
           )}

@@ -1,5 +1,5 @@
 :root {
-  --font-sans: var(--font-inter), "Segoe UI", sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
   --surface: #f5f7f9;
   --surface-low: #eef1f3;
   --surface-mid: #dfe4e8;
@@ -39,6 +39,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
+  font-optical-sizing: auto;
   color: var(--text);
   background:
     radial-gradient(circle at top left, rgba(102, 222, 254, 0.26), transparent 26%),
@@ -269,6 +270,121 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.system-status-card {
+  display: grid;
+  gap: 16px;
+}
+
+.system-status-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.system-detected-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.system-detected-line svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.system-status-indicator {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, var(--primary-soft), #7be3ff);
+  color: var(--primary-deep);
+  box-shadow: 0 14px 28px rgba(102, 222, 254, 0.22);
+  flex-shrink: 0;
+}
+
+.system-change-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: #c8d8f3;
+  color: #3c4c61;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.system-change-button:hover {
+  transform: translateY(-1px);
+}
+
+.system-picker-panel {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.system-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.system-picker-option {
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 22px;
+  background: #edf3f6;
+  color: var(--text);
+  text-align: left;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.system-picker-option span {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.system-picker-option small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.system-picker-option[data-active="true"] {
+  background: linear-gradient(145deg, rgba(0, 100, 120, 0.98), rgba(12, 128, 152, 0.92));
+  color: white;
+  box-shadow: 0 16px 26px rgba(0, 100, 120, 0.18);
+}
+
+.system-picker-option[data-active="true"] small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.system-picker-option:hover {
+  transform: translateY(-1px);
+}
+
+.system-picker-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
 }
 
 .system-chip {
@@ -786,5 +902,9 @@ img {
   .admin-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .system-picker-grid {
+    grid-template-columns: 1fr;
   }
 }
