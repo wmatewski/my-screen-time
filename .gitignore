@@ -43,3 +43,4 @@ coverage
 .idea
 
 .env.example
+ai_context
