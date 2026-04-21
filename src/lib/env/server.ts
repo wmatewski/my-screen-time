@@ -10,20 +10,13 @@ const required = (name: string, value: string | undefined) => {
   return value;
 };
 
-export const serverEnv = {
-  get supabaseSecretKey() {
-    return required("SUPABASE_SECRET_KEY", process.env.SUPABASE_SECRET_KEY);
-  },
-  get adminInviteRedirectUrl() {
-    return (
-      process.env.ADMIN_INVITE_REDIRECT_URL ??
-      `${publicEnv.appUrl}/auth/callback?next=/admin/setup-password`
-    );
-  },
-  get userInviteRedirectUrl() {
-    return (
-      process.env.USER_INVITE_REDIRECT_URL ??
-      `${publicEnv.appUrl}/auth/callback?next=/account/setup-password`
-    );
-  },
-} as const;
+export const getSupabaseSecretKey = () =>
+  required("SUPABASE_SECRET_KEY", process.env.SUPABASE_SECRET_KEY);
+
+export const getAdminInviteRedirectUrl = () =>
+  process.env.ADMIN_INVITE_REDIRECT_URL ??
+  `${publicEnv.appUrl}/auth/callback?next=/admin/setup-password`;
+
+export const getUserInviteRedirectUrl = () =>
+  process.env.USER_INVITE_REDIRECT_URL ??
+  `${publicEnv.appUrl}/auth/callback?next=/account/setup-password`;
