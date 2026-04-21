@@ -72,6 +72,8 @@ export interface TrackedSession {
   name: string;
   slug: string;
   description: string | null;
+  age_group: string;
+  max_participants: number;
   created_at: string;
   updated_at: string;
 }
@@ -80,7 +82,10 @@ export interface TrackedSessionSummary extends TrackedSession {
   submissions: number;
   average_minutes: number | null;
   last_submission_at: string | null;
+  participants: number;
   share_url: string;
+  short_share_url: string;
+  short_code: string;
   qr_code_data_url: string;
 }
 
@@ -144,6 +149,15 @@ export interface UserDashboardData {
   trackedSessions: TrackedSessionSummary[];
   organizationMembers: OrganizationMember[];
   recentEntries: ScreenTimeEntry[];
+}
+
+export interface SessionPanelData {
+  session: TrackedSessionSummary;
+  owner: UserProfile | null;
+  latestParticipantEntry: ScreenTimeEntry | null;
+  participantEntries: ScreenTimeEntry[];
+  liveEntries: ScreenTimeEntry[];
+  reportEntries: ScreenTimeEntry[];
 }
 
 export interface SharedSessionData {

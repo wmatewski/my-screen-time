@@ -19,4 +19,8 @@ export const getAdminInviteRedirectUrl = () =>
 
 export const getUserInviteRedirectUrl = () =>
   process.env.USER_INVITE_REDIRECT_URL ??
-  `${publicEnv.appUrl}/auth/callback?next=/account/setup-password`;
+  `${publicEnv.appUrl}/auth/callback?next=/password-reset`;
+
+export const getPasswordResetRedirectUrl = () =>
+  process.env.PASSWORD_RESET_REDIRECT_URL ??
+  `${publicEnv.appUrl}/auth/callback?next=/password-reset`;

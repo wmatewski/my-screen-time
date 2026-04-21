@@ -3,7 +3,10 @@
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedAppUser, requireOrganizationOwner } from "@/lib/app-auth";
-import { getUserInviteRedirectUrl } from "@/lib/env/server";
+import {
+  getPasswordResetRedirectUrl,
+  getUserInviteRedirectUrl,
+} from "@/lib/env/server";
 import { createBaseSlug, createUniqueSlug } from "@/lib/slug";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -15,6 +18,25 @@ const normalizeEmail = (value: FormDataEntryValue | null) =>
 
 const normalizeText = (value: FormDataEntryValue | null) => String(value ?? "").trim();
 
+const normalizeInteger = (value: FormDataEntryValue | null) => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return Number.NaN;
+  }
+
+  return Math.floor(parsed);
+};
+
+const ensureMembershipActivated = async (userId: string) => {
+  const adminClient = createSupabaseAdminClient();
+
+  await adminClient
+    .from("organization_memberships")
+    .update({ status: "active" })
+    .eq("user_id", userId);
+};
+
 export const registerUserAction = async (formData: FormData) => {
   const fullName = normalizeText(formData.get("fullName"));
   const organizationName = normalizeText(formData.get("organizationName"));
@@ -23,15 +45,15 @@ export const registerUserAction = async (formData: FormData) => {
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
   if (fullName.length < 2 || organizationName.length < 2 || !email) {
-    redirect("/account/register?error=missing-fields");
+    redirect("/sign-up?error=missing-fields");
   }
 
   if (password.length < 8) {
-    redirect("/account/register?error=weak-password");
+    redirect("/sign-up?error=weak-password");
   }
 
   if (password !== confirmPassword) {
-    redirect("/account/register?error=password-mismatch");
+    redirect("/sign-up?error=password-mismatch");
   }
 
   const adminClient = createSupabaseAdminClient();
@@ -50,7 +72,7 @@ export const registerUserAction = async (formData: FormData) => {
   });
 
   if (createUserError || !createdUserData.user) {
-    redirect("/account/register?error=registration-failed");
+    redirect("/sign-up?error=registration-failed");
   }
 
   const userId = createdUserData.user.id;
@@ -92,17 +114,17 @@ export const registerUserAction = async (formData: FormData) => {
     }
   } catch {
     await adminClient.auth.admin.deleteUser(userId);
-    redirect("/account/register?error=registration-failed");
+    redirect("/sign-up?error=registration-failed");
   }
 
   const supabase = await createSupabaseServerClient();
   const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
   if (signInError) {
-    redirect("/account/login?error=invalid-credentials");
+    redirect("/login?error=invalid-credentials");
   }
 
-  redirect("/panel?registered=1");
+  redirect("/dashboard/home?registered=1");
 };
 
 export const loginUserAction = async (formData: FormData) => {
@@ -110,14 +132,14 @@ export const loginUserAction = async (formData: FormData) => {
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect("/account/login?error=missing-credentials");
+    redirect("/login?error=missing-credentials");
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect("/account/login?error=invalid-credentials");
+    redirect("/login?error=invalid-credentials");
   }
 
   const adminClient = createSupabaseAdminClient();
@@ -133,7 +155,7 @@ export const loginUserAction = async (formData: FormData) => {
 
   if (!profile) {
     await supabase.auth.signOut();
-    redirect("/account/login?error=missing-profile");
+    redirect("/login?error=missing-profile");
   }
 
   const { data: membership, error: membershipError } = await adminClient
@@ -148,29 +170,31 @@ export const loginUserAction = async (formData: FormData) => {
 
   if (!membership) {
     await supabase.auth.signOut();
-    redirect("/account/login?error=missing-profile");
+    redirect("/login?error=missing-profile");
   }
 
   if (membership.status === "invited") {
-    redirect("/account/setup-password");
+    redirect("/password-reset");
   }
 
-  redirect("/panel");
+  redirect("/dashboard/home");
 };
 
 export const logoutUserAction = async () => {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  redirect("/account/login");
+  redirect("/login");
 };
 
 export const createTrackedSessionAction = async (formData: FormData) => {
   const { user, organization } = await getAuthenticatedAppUser();
   const name = normalizeText(formData.get("name"));
   const description = normalizeText(formData.get("description"));
+  const ageGroup = normalizeText(formData.get("ageGroup"));
+  const maxParticipants = normalizeInteger(formData.get("maxParticipants"));
 
-  if (name.length < 2) {
-    redirect("/panel?error=missing-session-name");
+  if (name.length < 2 || ageGroup.length < 2 || !Number.isInteger(maxParticipants) || maxParticipants < 1) {
+    redirect("/dashboard/sessions?error=missing-session-fields");
   }
 
   const adminClient = createSupabaseAdminClient();
@@ -179,19 +203,25 @@ export const createTrackedSessionAction = async (formData: FormData) => {
     return Boolean(data);
   });
 
-  const { error } = await adminClient.from("tracked_sessions").insert({
-    organization_id: organization.id,
-    created_by: user.id,
-    name,
-    slug,
-    description: description || null,
-  });
+  const { data, error } = await adminClient
+    .from("tracked_sessions")
+    .insert({
+      organization_id: organization.id,
+      created_by: user.id,
+      name,
+      slug,
+      description: description || null,
+      age_group: ageGroup,
+      max_participants: maxParticipants,
+    } as never)
+    .select("id")
+    .single();
 
-  if (error) {
-    redirect("/panel?error=session-create-failed");
+  if (error || !data) {
+    redirect("/dashboard/sessions?error=session-create-failed");
   }
 
-  redirect("/panel?session=created");
+  redirect(`/session/${data.id}?created=1`);
 };
 
 export const inviteOrganizationMemberAction = async (formData: FormData) => {
@@ -200,7 +230,7 @@ export const inviteOrganizationMemberAction = async (formData: FormData) => {
   const email = normalizeEmail(formData.get("email"));
 
   if (fullName.length < 2 || !email) {
-    redirect("/panel?error=missing-member-fields");
+    redirect("/dashboard/home?error=missing-member-fields");
   }
 
   const adminClient = createSupabaseAdminClient();
@@ -210,12 +240,12 @@ export const inviteOrganizationMemberAction = async (formData: FormData) => {
       fullName,
       invitedBy: user.id,
       organizationId: organization.id,
-      source: "aura-clarity-organization",
+      source: "wojticore-flowa-organization",
     },
   });
 
   if (error || !data.user?.id) {
-    redirect("/panel?error=member-invite-failed");
+    redirect("/dashboard/home?error=member-invite-failed");
   }
 
   const inviteeId = data.user.id;
@@ -244,10 +274,29 @@ export const inviteOrganizationMemberAction = async (formData: FormData) => {
   ]);
 
   if (profileError || membershipError) {
-    redirect("/panel?error=member-invite-failed");
+    redirect("/dashboard/home?error=member-invite-failed");
   }
 
-  redirect("/panel?invite=sent");
+  redirect("/dashboard/home?invite=sent");
+};
+
+export const requestPasswordResetAction = async (formData: FormData) => {
+  const email = normalizeEmail(formData.get("email"));
+
+  if (!email) {
+    redirect("/password-reset?error=missing-email");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
+
+  if (error) {
+    redirect("/password-reset?error=request-failed");
+  }
+
+  redirect("/password-reset?sent=1");
 };
 
 export const setUserPasswordAction = async (formData: FormData) => {
@@ -255,11 +304,11 @@ export const setUserPasswordAction = async (formData: FormData) => {
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
   if (password.length < 8) {
-    redirect("/account/setup-password?error=weak-password");
+    redirect("/password-reset?error=weak-password");
   }
 
   if (password !== confirmPassword) {
-    redirect("/account/setup-password?error=password-mismatch");
+    redirect("/password-reset?error=password-mismatch");
   }
 
   const supabase = await createSupabaseServerClient();
@@ -268,20 +317,16 @@ export const setUserPasswordAction = async (formData: FormData) => {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/account/login?error=session-expired");
+    redirect("/login?error=session-expired");
   }
 
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
-    redirect("/account/setup-password?error=update-failed");
+    redirect("/password-reset?error=update-failed");
   }
 
-  const adminClient = createSupabaseAdminClient();
-  await adminClient
-    .from("organization_memberships")
-    .update({ status: "active" })
-    .eq("user_id", user.id);
+  await ensureMembershipActivated(user.id);
 
-  redirect("/panel?password=updated");
+  redirect("/dashboard/home?password=updated");
 };

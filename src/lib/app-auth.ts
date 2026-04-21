@@ -18,14 +18,9 @@ export interface AuthenticatedAppUser {
   organization: Organization;
 }
 
-export const getAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser> => {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+const resolveAuthenticatedUser = async (user: User | null): Promise<AuthenticatedAppUser | null> => {
   if (!user) {
-    redirect("/account/login");
+    return null;
   }
 
   const adminClient = createSupabaseAdminClient();
@@ -52,12 +47,7 @@ export const getAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser> =
   }
 
   if (!profile || !membership) {
-    await supabase.auth.signOut();
-    redirect("/account/login?error=missing-profile");
-  }
-
-  if (membership.status === "invited") {
-    redirect("/account/setup-password");
+    return null;
   }
 
   const { data: organization, error: organizationError } = await adminClient
@@ -71,8 +61,7 @@ export const getAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser> =
   }
 
   if (!organization) {
-    await supabase.auth.signOut();
-    redirect("/account/login?error=missing-profile");
+    return null;
   }
 
   return {
@@ -83,11 +72,40 @@ export const getAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser> =
   };
 };
 
+export const getOptionalAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser | null> => {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const auth = await resolveAuthenticatedUser(user);
+
+  if (user && !auth) {
+    await supabase.auth.signOut();
+  }
+
+  return auth;
+};
+
+export const getAuthenticatedAppUser = async (): Promise<AuthenticatedAppUser> => {
+  const auth = await getOptionalAuthenticatedAppUser();
+
+  if (!auth) {
+    redirect("/login");
+  }
+
+  if (auth.membership.status === "invited") {
+    redirect("/password-reset");
+  }
+
+  return auth;
+};
+
 export const requireOrganizationOwner = async () => {
   const auth = await getAuthenticatedAppUser();
 
   if (auth.membership.role !== "owner") {
-    redirect("/panel?error=owner-only");
+    redirect("/dashboard/sessions?error=owner-only");
   }
 
   return auth;

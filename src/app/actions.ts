@@ -44,9 +44,10 @@ export const submitScreenTimeAction = async (formData: FormData) => {
     cookieStore.set(publicEnv.sessionCookieName, sessionId, sessionCookieOptions);
   }
 
-  const submittedOperatingSystem = String(formData.get("operatingSystem") ?? "unknown");
+  const submittedOperatingSystem = String(formData.get("operatingSystem") ?? "").trim();
   const detectedOperatingSystem = detectOperatingSystem(headerStore.get("user-agent"));
-  const operatingSystem = isOperatingSystem(submittedOperatingSystem)
+  const operatingSystem =
+    submittedOperatingSystem && submittedOperatingSystem !== "unknown" && isOperatingSystem(submittedOperatingSystem)
     ? submittedOperatingSystem
     : detectedOperatingSystem;
   const trackedSessionId = String(formData.get("trackedSessionId") ?? "").trim() || null;

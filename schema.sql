@@ -151,11 +151,21 @@ create table if not exists screentime.tracked_sessions (
   name text not null,
   slug text not null unique,
   description text,
+  age_group text not null default '13-17',
+  max_participants integer not null default 30,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint tracked_sessions_name_check check (char_length(trim(name)) >= 2),
-  constraint tracked_sessions_slug_check check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+  constraint tracked_sessions_slug_check check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
+  constraint tracked_sessions_age_group_check check (char_length(trim(age_group)) >= 2),
+  constraint tracked_sessions_max_participants_check check (max_participants >= 1)
 );
+
+alter table screentime.tracked_sessions
+  add column if not exists age_group text not null default '13-17';
+
+alter table screentime.tracked_sessions
+  add column if not exists max_participants integer not null default 30;
 
 create table if not exists screentime.screen_time_entries (
   id uuid primary key default gen_random_uuid(),
@@ -349,11 +359,14 @@ select
   sessions.name,
   sessions.slug,
   sessions.description,
+  sessions.age_group,
+  sessions.max_participants,
   sessions.created_at,
   sessions.updated_at,
   count(entries.id)::integer as submissions,
   round(avg(entries.screen_time_minutes)::numeric, 1) as average_minutes,
-  max(entries.submitted_at) as last_submission_at
+  max(entries.submitted_at) as last_submission_at,
+  count(distinct entries.session_id)::integer as participants
 from screentime.tracked_sessions as sessions
 left join screentime.screen_time_entries as entries
   on entries.tracked_session_id = sessions.id
@@ -364,11 +377,13 @@ group by
   sessions.name,
   sessions.slug,
   sessions.description,
+  sessions.age_group,
+  sessions.max_participants,
   sessions.created_at,
   sessions.updated_at;
 
 grant usage on schema screentime to anon, authenticated, service_role;
-grant select on screentime.user_profiles, screentime.organizations, screentime.organization_memberships, screentime.tracked_sessions, screentime.admin_profiles to authenticated, service_role;
+grant select on screentime.user_profiles, screentime.organizations, screentime.organization_memberships, screentime.tracked_sessions, screentime.screen_time_entries, screentime.admin_profiles to authenticated, service_role;
 grant select, insert, update, delete on all tables in schema screentime to service_role;
 grant usage on all sequences in schema screentime to service_role;
 grant select on screentime.latest_session_entries, screentime.os_statistics, screentime.ip_statistics, screentime.session_statistics to authenticated, service_role;
@@ -439,6 +454,24 @@ using (
     where organization_id = tracked_sessions.organization_id
       and user_id = auth.uid()
       and status = 'active'
+  )
+);
+
+drop policy if exists screen_time_entries_same_org_select on screentime.screen_time_entries;
+create policy screen_time_entries_same_org_select
+on screentime.screen_time_entries
+for select
+to authenticated
+using (
+  tracked_session_id is not null
+  and exists (
+    select 1
+    from screentime.tracked_sessions as sessions
+    join screentime.organization_memberships as memberships
+      on memberships.organization_id = sessions.organization_id
+    where sessions.id = screen_time_entries.tracked_session_id
+      and memberships.user_id = auth.uid()
+      and memberships.status = 'active'
   )
 );
 

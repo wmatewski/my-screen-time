@@ -105,6 +105,8 @@ export interface Database {
           name: string;
           slug: string;
           description: string | null;
+          age_group: string;
+          max_participants: number;
           created_at: string;
           updated_at: string;
         };
@@ -115,6 +117,8 @@ export interface Database {
           name: string;
           slug: string;
           description?: string | null;
+          age_group?: string;
+          max_participants?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -125,6 +129,8 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          age_group?: string;
+          max_participants?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -314,11 +320,14 @@ export interface Database {
           name: string;
           slug: string;
           description: string | null;
+          age_group: string;
+          max_participants: number;
           created_at: string;
           updated_at: string;
           submissions: number;
           average_minutes: number | null;
           last_submission_at: string | null;
+          participants: number;
         };
         Insert: {
           id?: string;
@@ -327,11 +336,14 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          age_group?: string;
+          max_participants?: number;
           created_at?: string;
           updated_at?: string;
           submissions?: number;
           average_minutes?: number | null;
           last_submission_at?: string | null;
+          participants?: number;
         };
         Update: {
           id?: string;
@@ -340,11 +352,14 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          age_group?: string;
+          max_participants?: number;
           created_at?: string;
           updated_at?: string;
           submissions?: number;
           average_minutes?: number | null;
           last_submission_at?: string | null;
+          participants?: number;
         };
         Relationships: [];
       };

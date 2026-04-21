@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 
 import type { Database } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env/public";
+import { supabaseAuthCookieOptions } from "@/lib/session";
 
 export const createSupabaseServerClient = async () => {
   const cookieStore = await cookies();
@@ -13,6 +14,7 @@ export const createSupabaseServerClient = async () => {
     publicEnv.supabaseUrl,
     publicEnv.supabasePublishableKey,
     {
+      cookieOptions: supabaseAuthCookieOptions,
       cookies: {
         getAll() {
           return cookieStore.getAll();

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import type { Database } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env/public";
-import { createSessionId, sessionCookieOptions } from "@/lib/session";
+import { createSessionId, sessionCookieOptions, supabaseAuthCookieOptions } from "@/lib/session";
 
 export const updateSession = async (request: NextRequest) => {
   let response = NextResponse.next({ request });
@@ -12,6 +12,7 @@ export const updateSession = async (request: NextRequest) => {
     publicEnv.supabaseUrl,
     publicEnv.supabasePublishableKey,
     {
+      cookieOptions: supabaseAuthCookieOptions,
       cookies: {
         getAll() {
           return request.cookies.getAll();

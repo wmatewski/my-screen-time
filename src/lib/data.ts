@@ -12,6 +12,7 @@ import type {
   OrganizationMembership,
   OrganizationMember,
   ScreenTimeEntry,
+  SessionPanelData,
   SharedSessionData,
   TrackedSessionSummary,
   UserDashboardData,
@@ -26,7 +27,51 @@ const average = (values: number[]) => {
   return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
 };
 
-const buildShareUrl = (slug: string) => `${publicEnv.appUrl}/session/${slug}`;
+const buildShareUrl = (sessionId: string) => `${publicEnv.appUrl}/session/${sessionId}`;
+const buildShortCode = (sessionId: string) => sessionId.slice(0, 7);
+const buildShortShareUrl = (sessionId: string) => `${publicEnv.appUrl}/${buildShortCode(sessionId)}`;
+
+const enrichSessionSummary = async (
+  item: Omit<TrackedSessionSummary, "share_url" | "short_share_url" | "short_code" | "qr_code_data_url">,
+): Promise<TrackedSessionSummary> => {
+  const shortShareUrl = buildShortShareUrl(item.id);
+
+  return {
+    ...item,
+    share_url: buildShareUrl(item.id),
+    short_share_url: shortShareUrl,
+    short_code: buildShortCode(item.id),
+    qr_code_data_url: await QRCode.toDataURL(shortShareUrl, {
+      margin: 1,
+      width: 220,
+    }),
+  };
+};
+
+export const getSessionIdFromShortCode = async (shortCode: string) => {
+  const normalizedShortCode = shortCode.trim().toLowerCase();
+
+  if (!/^[a-f0-9]{7}$/.test(normalizedShortCode)) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("tracked_sessions")
+    .select("id")
+    .ilike("id", `${normalizedShortCode}%`)
+    .limit(2);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data || data.length !== 1) {
+    return null;
+  }
+
+  return data[0]?.id ?? null;
+};
 
 export const getUserExperienceData = async (sessionId: string) => {
   const supabase = createSupabaseAdminClient();
@@ -85,14 +130,16 @@ export const getUserExperienceData = async (sessionId: string) => {
 };
 
 export const getSharedSessionData = async (
-  slug: string,
+  sessionId: string,
   participantSessionId: string,
 ): Promise<SharedSessionData | null> => {
   const supabase = createSupabaseAdminClient();
   const { data: session, error: sessionError } = await supabase
     .from("tracked_sessions")
-    .select("id, organization_id, created_by, name, slug, description, created_at, updated_at")
-    .eq("slug", slug)
+    .select(
+      "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at",
+    )
+    .eq("id", sessionId)
     .maybeSingle();
 
   if (sessionError) {
@@ -181,6 +228,108 @@ export const getSharedSessionData = async (
   };
 };
 
+export const getSessionPanelData = async ({
+  sessionId,
+  participantSessionId,
+}: {
+  sessionId: string;
+  participantSessionId: string;
+}): Promise<SessionPanelData | null> => {
+  const supabase = createSupabaseAdminClient();
+  const { data: sessionStats, error: sessionError } = await supabase
+    .from("session_statistics")
+    .select(
+      "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants",
+    )
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (sessionError) {
+    throw sessionError;
+  }
+
+  if (!sessionStats) {
+    return null;
+  }
+
+  const [ownerResult, latestParticipantEntryResult, participantEntriesResult, liveEntriesResult, reportEntriesResult] =
+    await Promise.all([
+      supabase
+        .from("user_profiles")
+        .select("user_id, email, full_name, created_at, updated_at")
+        .eq("user_id", sessionStats.created_by)
+        .maybeSingle(),
+      participantSessionId
+        ? supabase
+            .from("screen_time_entries")
+            .select(
+              "id, tracked_session_id, session_id, screen_time_minutes, detected_os, ip_address, user_agent, submitted_at, entry_date",
+            )
+            .eq("tracked_session_id", sessionId)
+            .eq("session_id", participantSessionId)
+            .order("submitted_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      participantSessionId
+        ? supabase
+            .from("screen_time_entries")
+            .select(
+              "id, tracked_session_id, session_id, screen_time_minutes, detected_os, ip_address, user_agent, submitted_at, entry_date",
+            )
+            .eq("tracked_session_id", sessionId)
+            .eq("session_id", participantSessionId)
+            .order("submitted_at", { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("latest_session_entries")
+        .select(
+          "id, tracked_session_id, session_id, screen_time_minutes, detected_os, ip_address, user_agent, submitted_at, entry_date",
+        )
+        .eq("tracked_session_id", sessionId)
+        .order("submitted_at", { ascending: false })
+        .limit(12),
+      supabase
+        .from("screen_time_entries")
+        .select(
+          "id, tracked_session_id, session_id, screen_time_minutes, detected_os, ip_address, user_agent, submitted_at, entry_date",
+        )
+        .eq("tracked_session_id", sessionId)
+        .order("submitted_at", { ascending: false })
+        .limit(100),
+    ]);
+
+  if (ownerResult.error) {
+    throw ownerResult.error;
+  }
+
+  if (latestParticipantEntryResult.error) {
+    throw latestParticipantEntryResult.error;
+  }
+
+  if (participantEntriesResult.error) {
+    throw participantEntriesResult.error;
+  }
+
+  if (liveEntriesResult.error) {
+    throw liveEntriesResult.error;
+  }
+
+  if (reportEntriesResult.error) {
+    throw reportEntriesResult.error;
+  }
+
+  return {
+    session: await enrichSessionSummary(sessionStats as Omit<TrackedSessionSummary, "share_url" | "short_share_url" | "short_code" | "qr_code_data_url">),
+    owner: (ownerResult.data as UserProfile | null) ?? null,
+    latestParticipantEntry: (latestParticipantEntryResult.data as ScreenTimeEntry | null) ?? null,
+    participantEntries: (participantEntriesResult.data as ScreenTimeEntry[] | null) ?? [],
+    liveEntries: (liveEntriesResult.data as ScreenTimeEntry[] | null) ?? [],
+    reportEntries: (reportEntriesResult.data as ScreenTimeEntry[] | null) ?? [],
+  };
+};
+
 export const getUserDashboardData = async ({
   userId,
   organizationId,
@@ -199,7 +348,7 @@ export const getUserDashboardData = async ({
     supabase
       .from("session_statistics")
       .select(
-        "id, organization_id, created_by, name, slug, description, created_at, updated_at, submissions, average_minutes, last_submission_at",
+        "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants",
       )
       .eq("organization_id", organizationId)
       .eq("created_by", userId)
@@ -219,7 +368,7 @@ export const getUserDashboardData = async ({
     throw membershipsResult.error;
   }
 
-  const trackedSessionsRaw = (trackedSessionsResult.data as TrackedSessionSummary[] | null) ?? [];
+  const trackedSessionsRaw = (trackedSessionsResult.data as Omit<TrackedSessionSummary, "share_url" | "short_share_url" | "short_code" | "qr_code_data_url">[] | null) ?? [];
   const memberships = (membershipsResult.data as OrganizationMembership[] | null) ?? [];
   const memberIds = memberships.map((member) => member.user_id);
   const sessionIds = trackedSessionsRaw.map((item) => item.id);
@@ -259,16 +408,7 @@ export const getUserDashboardData = async ({
     {},
   );
 
-  const trackedSessions = await Promise.all(
-    trackedSessionsRaw.map(async (item) => ({
-      ...item,
-      share_url: buildShareUrl(item.slug),
-      qr_code_data_url: await QRCode.toDataURL(buildShareUrl(item.slug), {
-        margin: 1,
-        width: 220,
-      }),
-    })),
-  );
+  const trackedSessions = await Promise.all(trackedSessionsRaw.map((item) => enrichSessionSummary(item)));
 
   return {
     profile,
