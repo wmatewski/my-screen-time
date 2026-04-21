@@ -10,14 +10,14 @@ const recommendedDailyLimitMinutes = Number(
   process.env.NEXT_PUBLIC_RECOMMENDED_DAILY_LIMIT_MINUTES ?? "120",
 );
 
-const normalizeProjectDomain = (value: string | undefined) =>
+const parseProjectDomain = (value: string | undefined) =>
   value
     ?.trim()
     .replace(/^https?:\/\//, "")
     .replace(/\/$/, "")
     .replace(/\/.*$/, "") ?? "";
 
-const projectDomain = normalizeProjectDomain(process.env.NEXT_PUBLIC_PROJECT_DOMAIN);
+const projectDomain = parseProjectDomain(process.env.NEXT_PUBLIC_PROJECT_DOMAIN);
 
 export const publicEnv = {
   appUrl: projectDomain

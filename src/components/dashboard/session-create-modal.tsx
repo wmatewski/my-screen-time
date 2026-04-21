@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 
+import { sessionAgeGroups } from "@/lib/session-config";
+
 interface SessionCreateModalProps {
   action: (formData: FormData) => void;
 }
-
-const ageGroups = ["7-12", "13-17", "18-24", "25+"];
 
 export const SessionCreateModal = ({ action }: SessionCreateModalProps) => {
   const [open, setOpen] = useState(false);
@@ -46,7 +46,7 @@ export const SessionCreateModal = ({ action }: SessionCreateModalProps) => {
               <label className="saas-field">
                 <span>Kategoria wiekowa</span>
                 <select name="ageGroup" defaultValue="13-17">
-                  {ageGroups.map((group) => (
+                  {sessionAgeGroups.map((group) => (
                     <option key={group} value={group}>
                       {group}
                     </option>

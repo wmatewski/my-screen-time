@@ -6,10 +6,10 @@ const lookup = [
   { pattern: /Huawei/i, label: "Huawei" },
   { pattern: /Xiaomi|Redmi|Mi /i, label: "Xiaomi" },
   { pattern: /OnePlus/i, label: "OnePlus" },
-  { pattern: /Macintosh/i, label: "Mac" },
-  { pattern: /Windows/i, label: "Windows PC" },
+  { pattern: /Macintosh/i, label: "Komputer Mac" },
+  { pattern: /Windows/i, label: "Komputer z Windows" },
   { pattern: /Android/i, label: "Telefon z Androidem" },
-  { pattern: /Linux/i, label: "Linux" },
+  { pattern: /Linux/i, label: "Komputer z Linux" },
 ];
 
 export const getDeviceLabel = (userAgent: string | null | undefined) => {

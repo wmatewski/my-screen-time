@@ -161,10 +161,10 @@ create table if not exists screentime.tracked_sessions (
   constraint tracked_sessions_max_participants_check check (max_participants >= 1)
 );
 
+-- Existing deployments may already have tracked_sessions without these new product fields.
 alter table screentime.tracked_sessions
   add column if not exists age_group text not null default '13-17';
 
--- Existing deployments may already have tracked_sessions without the new product fields.
 alter table screentime.tracked_sessions
   add column if not exists max_participants integer not null default 30;
 

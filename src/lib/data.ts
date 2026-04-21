@@ -28,6 +28,8 @@ const average = (values: number[]) => {
 };
 
 const SHORT_CODE_LENGTH = 7;
+const SESSION_STATISTICS_FIELDS =
+  "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants";
 const buildShareUrl = (sessionId: string) => `${publicEnv.appUrl}/session/${sessionId}`;
 const buildShortCode = (sessionId: string) => sessionId.slice(0, SHORT_CODE_LENGTH);
 const buildShortShareUrl = (sessionId: string) => `${publicEnv.appUrl}/${buildShortCode(sessionId)}`;
@@ -239,9 +241,7 @@ export const getSessionPanelData = async ({
   const supabase = createSupabaseAdminClient();
   const { data: sessionStats, error: sessionError } = await supabase
     .from("session_statistics")
-    .select(
-      "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants",
-    )
+    .select(SESSION_STATISTICS_FIELDS)
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -348,9 +348,7 @@ export const getUserDashboardData = async ({
   const [trackedSessionsResult, membershipsResult] = await Promise.all([
     supabase
       .from("session_statistics")
-      .select(
-        "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants",
-      )
+      .select(SESSION_STATISTICS_FIELDS)
       .eq("organization_id", organizationId)
       .eq("created_by", userId)
       .order("created_at", { ascending: false }),
