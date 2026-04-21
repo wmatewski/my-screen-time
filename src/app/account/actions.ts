@@ -18,6 +18,7 @@ const normalizeEmail = (value: FormDataEntryValue | null) =>
 
 const normalizeText = (value: FormDataEntryValue | null) => String(value ?? "").trim();
 
+// Returns NaN for invalid values so callers can keep one consistent numeric validation path.
 const normalizeInteger = (value: FormDataEntryValue | null) => {
   const parsed = Number(value);
 

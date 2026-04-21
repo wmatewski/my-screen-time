@@ -16,6 +16,8 @@ import { getUserDashboardData } from "@/lib/data";
 import type { FlashMessage } from "@/lib/types";
 
 const pages = new Set(["home", "sessions"]);
+const formatCountLabel = (count: number, singular: string, plural: string) =>
+  `${count} ${count === 1 ? singular : plural}`;
 
 const getFlashMessage = (params: Record<string, string | string[] | undefined>): FlashMessage | null => {
   if (params.registered === "1") {
@@ -93,7 +95,10 @@ export default async function DashboardPage({
           <div className="saas-header-card">
             <span>Aktywny workspace</span>
             <strong>{data.organization.name}</strong>
-            <p>{data.organizationMembers.length} osób i {data.trackedSessions.length} sesji w jednym miejscu.</p>
+            <p>
+              {formatCountLabel(data.organizationMembers.length, "osoba", "osób")} i{" "}
+              {formatCountLabel(data.trackedSessions.length, "sesja", "sesji")} w jednym miejscu.
+            </p>
           </div>
         </section>
 

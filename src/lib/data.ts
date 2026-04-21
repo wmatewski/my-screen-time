@@ -28,6 +28,7 @@ const average = (values: number[]) => {
 };
 
 const SHORT_CODE_LENGTH = 7;
+const SHORT_CODE_REGEX = /^[a-f0-9]{7}$/;
 const SESSION_STATISTICS_FIELDS =
   "id, organization_id, created_by, name, slug, description, age_group, max_participants, created_at, updated_at, submissions, average_minutes, last_submission_at, participants";
 const buildShareUrl = (sessionId: string) => `${publicEnv.appUrl}/session/${sessionId}`;
@@ -54,7 +55,7 @@ const enrichSessionSummary = async (
 export const getSessionIdFromShortCode = async (shortCode: string) => {
   const normalizedShortCode = shortCode.trim().toLowerCase();
 
-  if (!new RegExp(`^[a-f0-9]{${SHORT_CODE_LENGTH}}$`).test(normalizedShortCode)) {
+  if (!SHORT_CODE_REGEX.test(normalizedShortCode)) {
     return null;
   }
 
@@ -62,7 +63,7 @@ export const getSessionIdFromShortCode = async (shortCode: string) => {
   const { data, error } = await supabase
     .from("tracked_sessions")
     .select("id")
-    .ilike("id", `${normalizedShortCode}%`)
+    .like("id", `${normalizedShortCode}%`)
     .limit(2);
 
   if (error) {

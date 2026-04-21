@@ -46,10 +46,10 @@ export default async function SessionPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ sessionId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ slug: sessionId }, query, cookieStore, auth] = await Promise.all([
+  const [{ sessionId }, query, cookieStore, auth] = await Promise.all([
     params,
     searchParams,
     cookies(),

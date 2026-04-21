@@ -161,7 +161,8 @@ create table if not exists screentime.tracked_sessions (
   constraint tracked_sessions_max_participants_check check (max_participants >= 1)
 );
 
--- Existing deployments may already have tracked_sessions without these new product fields.
+-- Base schema stays rerunnable and also upgrades older deployments that already have tracked_sessions
+-- without these new product fields.
 alter table screentime.tracked_sessions
   add column if not exists age_group text not null default '13-17';
 
@@ -384,6 +385,7 @@ group by
   sessions.updated_at;
 
 grant usage on schema screentime to anon, authenticated, service_role;
+-- Authenticated users can subscribe/query only rows allowed by RLS policies below.
 grant select on screentime.user_profiles, screentime.organizations, screentime.organization_memberships, screentime.tracked_sessions, screentime.screen_time_entries, screentime.admin_profiles to authenticated, service_role;
 grant select, insert, update, delete on all tables in schema screentime to service_role;
 grant usage on all sequences in schema screentime to service_role;
