@@ -1,5 +1,5 @@
 :root {
-  --font-sans: var(--font-inter), sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --surface: #f5f7f9;
   --surface-low: #eef1f3;
   --surface-mid: #dfe4e8;
@@ -906,5 +906,69 @@ img {
 
   .system-picker-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.topbar-wrap {
+  flex-wrap: wrap;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.secondary-link,
+.inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-deep);
+  font-weight: 700;
+}
+
+.session-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.session-card {
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--line);
+}
+
+.session-card-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  align-items: center;
+}
+
+.qr-card {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid var(--line);
+}
+
+.qr-card img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .session-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
   }
 }

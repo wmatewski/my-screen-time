@@ -1,5 +1,6 @@
-import { Activity, ShieldCheck } from "lucide-react";
+import { Activity, LogIn, ShieldCheck, UserRoundPlus } from "lucide-react";
 import { cookies, headers } from "next/headers";
+import Link from "next/link";
 
 import { submitScreenTimeAction } from "@/app/actions";
 import { ScreenTimeExperience } from "@/components/user/screen-time-experience";
@@ -62,7 +63,7 @@ export default async function HomePage({
 
   return (
     <main className="site-shell">
-      <header className="topbar">
+      <header className="topbar topbar-wrap">
         <div className="brand">
           <div className="brand-mark">
             <Activity size={22} />
@@ -73,9 +74,19 @@ export default async function HomePage({
           </div>
         </div>
 
-        <div className="eyebrow">
-          <ShieldCheck size={16} />
-          Sesja lokalna bez logowania
+        <div className="topbar-actions">
+          <div className="eyebrow">
+            <ShieldCheck size={16} />
+            Sesja lokalna bez logowania
+          </div>
+          <Link className="secondary-link" href="/account/login">
+            <LogIn size={16} />
+            Zaloguj się
+          </Link>
+          <Link className="secondary-link" href="/account/register">
+            <UserRoundPlus size={16} />
+            Rejestracja
+          </Link>
         </div>
       </header>
 
@@ -87,11 +98,6 @@ export default async function HomePage({
         flash={flash}
         submitAction={submitScreenTimeAction}
       />
-
-      <footer className="page-footer" style={{ marginTop: 20 }}>
-        Dane użytkownika są wiązane z lokalną sesją cookie, a nie z kontem. Dzięki temu możesz
-        wracać do swoich wpisów w tej samej przeglądarce bez rejestracji.
-      </footer>
     </main>
   );
 }
