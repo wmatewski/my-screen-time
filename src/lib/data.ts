@@ -27,8 +27,9 @@ const average = (values: number[]) => {
   return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
 };
 
+const SHORT_CODE_LENGTH = 7;
 const buildShareUrl = (sessionId: string) => `${publicEnv.appUrl}/session/${sessionId}`;
-const buildShortCode = (sessionId: string) => sessionId.slice(0, 7);
+const buildShortCode = (sessionId: string) => sessionId.slice(0, SHORT_CODE_LENGTH);
 const buildShortShareUrl = (sessionId: string) => `${publicEnv.appUrl}/${buildShortCode(sessionId)}`;
 
 const enrichSessionSummary = async (
@@ -51,7 +52,7 @@ const enrichSessionSummary = async (
 export const getSessionIdFromShortCode = async (shortCode: string) => {
   const normalizedShortCode = shortCode.trim().toLowerCase();
 
-  if (!/^[a-f0-9]{7}$/.test(normalizedShortCode)) {
+  if (!new RegExp(`^[a-f0-9]{${SHORT_CODE_LENGTH}}$`).test(normalizedShortCode)) {
     return null;
   }
 

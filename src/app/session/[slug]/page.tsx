@@ -291,7 +291,6 @@ export default async function SessionPage({
           <form action={submitScreenTimeAction} className="saas-form-grid">
             <input type="hidden" name="trackedSessionId" value={sharedData.session.id} />
             <input type="hidden" name="redirectTo" value={`/session/${sharedData.session.id}`} />
-            <input type="hidden" name="operatingSystem" value="unknown" />
             <div className="saas-time-grid">
               <label className="saas-field">
                 <span>Godziny</span>

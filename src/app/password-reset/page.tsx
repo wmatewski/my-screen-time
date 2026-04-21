@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-
 import { requestPasswordResetAction, setUserPasswordAction } from "@/app/account/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { getOptionalAuthenticatedAppUser } from "@/lib/app-auth";
@@ -48,10 +46,6 @@ export default async function PasswordResetPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (auth?.membership.status === "active" && !user) {
-    redirect("/dashboard/home");
-  }
 
   const flash = getFlashMessage(params);
   const canSetPassword = Boolean(user || auth?.membership.status === "invited");
