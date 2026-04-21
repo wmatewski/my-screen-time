@@ -2,35 +2,115 @@ create extension if not exists pgcrypto;
 
 create schema if not exists screentime;
 
-create type screentime.os_family as enum (
-  'ios',
-  'android',
-  'windows',
-  'macos',
-  'linux',
-  'unknown'
-);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_type as types
+    join pg_namespace as namespaces on namespaces.oid = types.typnamespace
+    where namespaces.nspname = 'screentime'
+      and types.typname = 'os_family'
+  ) then
+    create type screentime.os_family as enum (
+      'ios',
+      'android',
+      'windows',
+      'macos',
+      'linux',
+      'unknown'
+    );
+  else
+    alter type screentime.os_family add value if not exists 'ios';
+    alter type screentime.os_family add value if not exists 'android';
+    alter type screentime.os_family add value if not exists 'windows';
+    alter type screentime.os_family add value if not exists 'macos';
+    alter type screentime.os_family add value if not exists 'linux';
+    alter type screentime.os_family add value if not exists 'unknown';
+  end if;
+end
+$$;
 
-create type screentime.admin_role as enum (
-  'owner',
-  'admin'
-);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_type as types
+    join pg_namespace as namespaces on namespaces.oid = types.typnamespace
+    where namespaces.nspname = 'screentime'
+      and types.typname = 'admin_role'
+  ) then
+    create type screentime.admin_role as enum (
+      'owner',
+      'admin'
+    );
+  else
+    alter type screentime.admin_role add value if not exists 'owner';
+    alter type screentime.admin_role add value if not exists 'admin';
+  end if;
+end
+$$;
 
-create type screentime.admin_status as enum (
-  'invited',
-  'active',
-  'disabled'
-);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_type as types
+    join pg_namespace as namespaces on namespaces.oid = types.typnamespace
+    where namespaces.nspname = 'screentime'
+      and types.typname = 'admin_status'
+  ) then
+    create type screentime.admin_status as enum (
+      'invited',
+      'active',
+      'disabled'
+    );
+  else
+    alter type screentime.admin_status add value if not exists 'invited';
+    alter type screentime.admin_status add value if not exists 'active';
+    alter type screentime.admin_status add value if not exists 'disabled';
+  end if;
+end
+$$;
 
-create type screentime.organization_role as enum (
-  'owner',
-  'member'
-);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_type as types
+    join pg_namespace as namespaces on namespaces.oid = types.typnamespace
+    where namespaces.nspname = 'screentime'
+      and types.typname = 'organization_role'
+  ) then
+    create type screentime.organization_role as enum (
+      'owner',
+      'member'
+    );
+  else
+    alter type screentime.organization_role add value if not exists 'owner';
+    alter type screentime.organization_role add value if not exists 'member';
+  end if;
+end
+$$;
 
-create type screentime.membership_status as enum (
-  'invited',
-  'active'
-);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_type as types
+    join pg_namespace as namespaces on namespaces.oid = types.typnamespace
+    where namespaces.nspname = 'screentime'
+      and types.typname = 'membership_status'
+  ) then
+    create type screentime.membership_status as enum (
+      'invited',
+      'active'
+    );
+  else
+    alter type screentime.membership_status add value if not exists 'invited';
+    alter type screentime.membership_status add value if not exists 'active';
+  end if;
+end
+$$;
 
 create table if not exists screentime.user_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,

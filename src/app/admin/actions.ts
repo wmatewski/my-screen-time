@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
-import { serverEnv } from "@/lib/env/server";
+import { getAdminInviteRedirectUrl } from "@/lib/env/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -63,7 +63,7 @@ export const inviteAdminAction = async (formData: FormData) => {
   const adminClient = createSupabaseAdminClient();
 
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: serverEnv.adminInviteRedirectUrl,
+    redirectTo: getAdminInviteRedirectUrl(),
     data: {
       invitedBy: user.id,
       source: "aura-clarity-admin-panel",

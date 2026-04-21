@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { getAuthenticatedAppUser, requireOrganizationOwner } from "@/lib/app-auth";
-import { serverEnv } from "@/lib/env/server";
+import { getUserInviteRedirectUrl } from "@/lib/env/server";
 import { createBaseSlug, createUniqueSlug } from "@/lib/slug";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -205,7 +205,7 @@ export const inviteOrganizationMemberAction = async (formData: FormData) => {
 
   const adminClient = createSupabaseAdminClient();
   const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: serverEnv.userInviteRedirectUrl,
+    redirectTo: getUserInviteRedirectUrl(),
     data: {
       fullName,
       invitedBy: user.id,
