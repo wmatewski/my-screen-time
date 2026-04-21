@@ -19,16 +19,16 @@ begin
       'linux',
       'unknown'
     );
+  else
+    alter type screentime.os_family add value if not exists 'ios';
+    alter type screentime.os_family add value if not exists 'android';
+    alter type screentime.os_family add value if not exists 'windows';
+    alter type screentime.os_family add value if not exists 'macos';
+    alter type screentime.os_family add value if not exists 'linux';
+    alter type screentime.os_family add value if not exists 'unknown';
   end if;
 end
 $$;
-
-alter type screentime.os_family add value if not exists 'ios';
-alter type screentime.os_family add value if not exists 'android';
-alter type screentime.os_family add value if not exists 'windows';
-alter type screentime.os_family add value if not exists 'macos';
-alter type screentime.os_family add value if not exists 'linux';
-alter type screentime.os_family add value if not exists 'unknown';
 
 do $$
 begin
@@ -43,12 +43,12 @@ begin
       'owner',
       'admin'
     );
+  else
+    alter type screentime.admin_role add value if not exists 'owner';
+    alter type screentime.admin_role add value if not exists 'admin';
   end if;
 end
 $$;
-
-alter type screentime.admin_role add value if not exists 'owner';
-alter type screentime.admin_role add value if not exists 'admin';
 
 do $$
 begin
@@ -64,13 +64,13 @@ begin
       'active',
       'disabled'
     );
+  else
+    alter type screentime.admin_status add value if not exists 'invited';
+    alter type screentime.admin_status add value if not exists 'active';
+    alter type screentime.admin_status add value if not exists 'disabled';
   end if;
 end
 $$;
-
-alter type screentime.admin_status add value if not exists 'invited';
-alter type screentime.admin_status add value if not exists 'active';
-alter type screentime.admin_status add value if not exists 'disabled';
 
 do $$
 begin
@@ -85,12 +85,12 @@ begin
       'owner',
       'member'
     );
+  else
+    alter type screentime.organization_role add value if not exists 'owner';
+    alter type screentime.organization_role add value if not exists 'member';
   end if;
 end
 $$;
-
-alter type screentime.organization_role add value if not exists 'owner';
-alter type screentime.organization_role add value if not exists 'member';
 
 do $$
 begin
@@ -105,12 +105,12 @@ begin
       'invited',
       'active'
     );
+  else
+    alter type screentime.membership_status add value if not exists 'invited';
+    alter type screentime.membership_status add value if not exists 'active';
   end if;
 end
 $$;
-
-alter type screentime.membership_status add value if not exists 'invited';
-alter type screentime.membership_status add value if not exists 'active';
 
 create table if not exists screentime.user_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
