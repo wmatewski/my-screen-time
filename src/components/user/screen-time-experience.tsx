@@ -31,6 +31,13 @@ interface ScreenTimeExperienceProps {
   analytics: SessionAnalytics | null;
   flash: FlashMessage | null;
   submitAction: (formData: FormData) => void;
+  trackedSessionId?: string;
+  redirectTo?: string;
+  heroEyebrow?: string;
+  heroTitle?: string;
+  heroDescription?: string;
+  sessionChipLabel?: string;
+  footerText?: string;
 }
 
 export const ScreenTimeExperience = ({
@@ -40,6 +47,15 @@ export const ScreenTimeExperience = ({
   analytics,
   flash,
   submitAction,
+  trackedSessionId,
+  redirectTo = "/",
+  heroEyebrow = "Aura Clarity",
+  heroTitle = "Zrozum swój dzisiejszy cyfrowy rytm.",
+  heroDescription =
+    "Wykrywamy system, pomagamy znaleźć screen time i od razu porównujemy Twój wynik z limitem dla wieku 12-17 lat.",
+  sessionChipLabel = "Sesja bez logowania",
+  footerText =
+    "Dane użytkownika są wiązane z lokalną sesją cookie, a nie z kontem. Dzięki temu możesz wracać do swoich wpisów w tej samej przeglądarce bez rejestracji.",
 }: ScreenTimeExperienceProps) => {
   const [selectedOperatingSystem, setSelectedOperatingSystem] =
     useState<OperatingSystem>(initialOperatingSystem);
@@ -81,13 +97,10 @@ export const ScreenTimeExperience = ({
         <article className="hero-card">
           <div className="eyebrow">
             <Sparkles size={16} />
-            Aura Clarity
+            {heroEyebrow}
           </div>
-          <h1>Zrozum swój dzisiejszy cyfrowy rytm.</h1>
-          <p>
-            Wykrywamy system, pomagamy znaleźć screen time i od razu porównujemy
-            Twój wynik z limitem dla wieku 12-17 lat.
-          </p>
+          <h1>{heroTitle}</h1>
+          <p>{heroDescription}</p>
           <div className="stack-row" style={{ marginTop: 24 }}>
             <span className="metric-pill">
               <CheckCircle2 size={16} />
@@ -95,7 +108,7 @@ export const ScreenTimeExperience = ({
             </span>
             <span className="metric-pill">
               <Layers3 size={16} />
-              Sesja bez logowania
+              {sessionChipLabel}
             </span>
           </div>
         </article>
@@ -202,6 +215,8 @@ export const ScreenTimeExperience = ({
 
           <form action={submitAction} className="screen-time-form">
             <input type="hidden" name="operatingSystem" value={selectedOperatingSystem} />
+            <input type="hidden" name="redirectTo" value={redirectTo} />
+            {trackedSessionId ? <input type="hidden" name="trackedSessionId" value={trackedSessionId} /> : null}
 
             <div className="time-grid">
               <label className="field">
@@ -341,6 +356,10 @@ export const ScreenTimeExperience = ({
           </div>
         )}
       </section>
+
+      <footer className="page-footer" style={{ marginTop: 20 }}>
+        {footerText}
+      </footer>
     </div>
   );
 };

@@ -16,9 +16,124 @@ export interface Database {
   };
   screentime: {
     Tables: {
+      user_profiles: {
+        Row: {
+          user_id: string;
+          email: string;
+          full_name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          email: string;
+          full_name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          email?: string;
+          full_name?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      organization_memberships: {
+        Row: {
+          id: string;
+          organization_id: string;
+          user_id: string;
+          role: Database["screentime"]["Enums"]["organization_role"];
+          status: Database["screentime"]["Enums"]["membership_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          user_id: string;
+          role?: Database["screentime"]["Enums"]["organization_role"];
+          status?: Database["screentime"]["Enums"]["membership_status"];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          user_id?: string;
+          role?: Database["screentime"]["Enums"]["organization_role"];
+          status?: Database["screentime"]["Enums"]["membership_status"];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      tracked_sessions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          created_by: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          created_by: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          created_by?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       screen_time_entries: {
         Row: {
           id: string;
+          tracked_session_id: string | null;
           session_id: string;
           screen_time_minutes: number;
           detected_os: Database["screentime"]["Enums"]["os_family"];
@@ -29,6 +144,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          tracked_session_id?: string | null;
           session_id: string;
           screen_time_minutes: number;
           detected_os?: Database["screentime"]["Enums"]["os_family"];
@@ -39,6 +155,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          tracked_session_id?: string | null;
           session_id?: string;
           screen_time_minutes?: number;
           detected_os?: Database["screentime"]["Enums"]["os_family"];
@@ -111,6 +228,7 @@ export interface Database {
       latest_session_entries: {
         Row: {
           id: string;
+          tracked_session_id: string | null;
           session_id: string;
           screen_time_minutes: number;
           detected_os: Database["screentime"]["Enums"]["os_family"];
@@ -121,6 +239,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          tracked_session_id?: string | null;
           session_id?: string;
           screen_time_minutes?: number;
           detected_os?: Database["screentime"]["Enums"]["os_family"];
@@ -131,6 +250,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          tracked_session_id?: string | null;
           session_id?: string;
           screen_time_minutes?: number;
           detected_os?: Database["screentime"]["Enums"]["os_family"];
@@ -186,6 +306,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      session_statistics: {
+        Row: {
+          id: string;
+          organization_id: string;
+          created_by: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+          submissions: number;
+          average_minutes: number | null;
+          last_submission_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id?: string;
+          created_by?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          submissions?: number;
+          average_minutes?: number | null;
+          last_submission_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          created_by?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          submissions?: number;
+          average_minutes?: number | null;
+          last_submission_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       bootstrap_admin: {
@@ -210,6 +372,8 @@ export interface Database {
       os_family: "ios" | "android" | "windows" | "macos" | "linux" | "unknown";
       admin_role: "owner" | "admin";
       admin_status: "invited" | "active" | "disabled";
+      organization_role: "owner" | "member";
+      membership_status: "invited" | "active";
     };
     CompositeTypes: Record<string, never>;
   };

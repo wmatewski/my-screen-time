@@ -19,13 +19,20 @@ const parseBoundedNumber = (value: FormDataEntryValue | null, fallback = 0) => {
   return Math.floor(parsed);
 };
 
+const getSafeRedirectTarget = (value: FormDataEntryValue | null) => {
+  const redirectTarget = String(value ?? "/");
+
+  return redirectTarget.startsWith("/") ? redirectTarget : "/";
+};
+
 export const submitScreenTimeAction = async (formData: FormData) => {
   const hours = parseBoundedNumber(formData.get("hours"));
   const minutes = parseBoundedNumber(formData.get("minutes"));
   const totalMinutes = hours * 60 + minutes;
+  const redirectTarget = getSafeRedirectTarget(formData.get("redirectTo"));
 
   if (hours > 23 || minutes > 59 || totalMinutes <= 0 || totalMinutes > 1440) {
-    redirect("/?error=invalid-time");
+    redirect(`${redirectTarget}?error=invalid-time`);
   }
 
   const headerStore = await headers();
@@ -42,9 +49,11 @@ export const submitScreenTimeAction = async (formData: FormData) => {
   const operatingSystem = isOperatingSystem(submittedOperatingSystem)
     ? submittedOperatingSystem
     : detectedOperatingSystem;
+  const trackedSessionId = String(formData.get("trackedSessionId") ?? "").trim() || null;
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("screen_time_entries").insert({
+    tracked_session_id: trackedSessionId,
     session_id: sessionId,
     screen_time_minutes: totalMinutes,
     detected_os: operatingSystem,
@@ -53,8 +62,8 @@ export const submitScreenTimeAction = async (formData: FormData) => {
   });
 
   if (error) {
-    redirect("/?error=save-failed");
+    redirect(`${redirectTarget}?error=save-failed`);
   }
 
-  redirect("/?saved=1");
+  redirect(`${redirectTarget}?saved=1`);
 };

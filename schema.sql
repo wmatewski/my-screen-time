@@ -22,8 +22,64 @@ create type screentime.admin_status as enum (
   'disabled'
 );
 
+create type screentime.organization_role as enum (
+  'owner',
+  'member'
+);
+
+create type screentime.membership_status as enum (
+  'invited',
+  'active'
+);
+
+create table if not exists screentime.user_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  email text not null unique,
+  full_name text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint user_profiles_email_check check (position('@' in email) > 1),
+  constraint user_profiles_full_name_check check (char_length(trim(full_name)) >= 2)
+);
+
+create table if not exists screentime.organizations (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null unique,
+  created_by uuid not null unique references auth.users (id) on delete cascade,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint organizations_name_check check (char_length(trim(name)) >= 2),
+  constraint organizations_slug_check check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+);
+
+create table if not exists screentime.organization_memberships (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references screentime.organizations (id) on delete cascade,
+  user_id uuid not null unique references auth.users (id) on delete cascade,
+  role screentime.organization_role not null default 'member',
+  status screentime.membership_status not null default 'invited',
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  unique (organization_id, user_id)
+);
+
+create table if not exists screentime.tracked_sessions (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references screentime.organizations (id) on delete cascade,
+  created_by uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  slug text not null unique,
+  description text,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint tracked_sessions_name_check check (char_length(trim(name)) >= 2),
+  constraint tracked_sessions_slug_check check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+);
+
 create table if not exists screentime.screen_time_entries (
   id uuid primary key default gen_random_uuid(),
+  tracked_session_id uuid references screentime.tracked_sessions (id) on delete cascade,
   session_id uuid not null,
   screen_time_minutes integer not null check (screen_time_minutes between 0 and 1440),
   detected_os screentime.os_family not null default 'unknown',
@@ -34,7 +90,7 @@ create table if not exists screentime.screen_time_entries (
 );
 
 create index if not exists screen_time_entries_session_idx
-  on screentime.screen_time_entries (session_id, submitted_at desc);
+  on screentime.screen_time_entries (tracked_session_id, session_id, submitted_at desc);
 
 create index if not exists screen_time_entries_os_idx
   on screentime.screen_time_entries (detected_os, submitted_at desc);
@@ -44,6 +100,15 @@ create index if not exists screen_time_entries_entry_date_idx
 
 create index if not exists screen_time_entries_ip_idx
   on screentime.screen_time_entries (ip_address);
+
+create index if not exists organization_memberships_org_idx
+  on screentime.organization_memberships (organization_id, status, created_at desc);
+
+create index if not exists tracked_sessions_created_by_idx
+  on screentime.tracked_sessions (created_by, created_at desc);
+
+create index if not exists tracked_sessions_org_idx
+  on screentime.tracked_sessions (organization_id, created_at desc);
 
 create table if not exists screentime.admin_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
@@ -75,8 +140,31 @@ begin
 end;
 $$;
 
-drop trigger if exists admin_profiles_set_updated_at on screentime.admin_profiles;
+drop trigger if exists user_profiles_set_updated_at on screentime.user_profiles;
+create trigger user_profiles_set_updated_at
+before update on screentime.user_profiles
+for each row
+execute function screentime.set_updated_at();
 
+drop trigger if exists organizations_set_updated_at on screentime.organizations;
+create trigger organizations_set_updated_at
+before update on screentime.organizations
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists organization_memberships_set_updated_at on screentime.organization_memberships;
+create trigger organization_memberships_set_updated_at
+before update on screentime.organization_memberships
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists tracked_sessions_set_updated_at on screentime.tracked_sessions;
+create trigger tracked_sessions_set_updated_at
+before update on screentime.tracked_sessions
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists admin_profiles_set_updated_at on screentime.admin_profiles;
 create trigger admin_profiles_set_updated_at
 before update on screentime.admin_profiles
 for each row
@@ -141,8 +229,9 @@ end;
 $$;
 
 create or replace view screentime.latest_session_entries as
-select distinct on (session_id)
+select distinct on (tracked_session_id, session_id)
   id,
+  tracked_session_id,
   session_id,
   screen_time_minutes,
   detected_os,
@@ -151,7 +240,7 @@ select distinct on (session_id)
   submitted_at,
   entry_date
 from screentime.screen_time_entries
-order by session_id, submitted_at desc;
+order by tracked_session_id, session_id, submitted_at desc;
 
 create or replace view screentime.os_statistics as
 select
@@ -172,17 +261,106 @@ select
 from screentime.screen_time_entries
 group by coalesce(host(ip_address), 'unknown');
 
+create or replace view screentime.session_statistics as
+select
+  sessions.id,
+  sessions.organization_id,
+  sessions.created_by,
+  sessions.name,
+  sessions.slug,
+  sessions.description,
+  sessions.created_at,
+  sessions.updated_at,
+  count(entries.id)::integer as submissions,
+  round(avg(entries.screen_time_minutes)::numeric, 1) as average_minutes,
+  max(entries.submitted_at) as last_submission_at
+from screentime.tracked_sessions as sessions
+left join screentime.screen_time_entries as entries
+  on entries.tracked_session_id = sessions.id
+group by
+  sessions.id,
+  sessions.organization_id,
+  sessions.created_by,
+  sessions.name,
+  sessions.slug,
+  sessions.description,
+  sessions.created_at,
+  sessions.updated_at;
+
 grant usage on schema screentime to anon, authenticated, service_role;
-grant select on screentime.admin_profiles to authenticated, service_role;
+grant select on screentime.user_profiles, screentime.organizations, screentime.organization_memberships, screentime.tracked_sessions, screentime.admin_profiles to authenticated, service_role;
 grant select, insert, update, delete on all tables in schema screentime to service_role;
 grant usage on all sequences in schema screentime to service_role;
-grant select on screentime.latest_session_entries, screentime.os_statistics, screentime.ip_statistics to service_role;
+grant select on screentime.latest_session_entries, screentime.os_statistics, screentime.ip_statistics, screentime.session_statistics to authenticated, service_role;
 grant execute on function screentime.is_admin(uuid) to authenticated, service_role;
 grant execute on function screentime.bootstrap_admin(text, screentime.admin_role) to service_role;
 
+alter table screentime.user_profiles enable row level security;
+alter table screentime.organizations enable row level security;
+alter table screentime.organization_memberships enable row level security;
+alter table screentime.tracked_sessions enable row level security;
 alter table screentime.screen_time_entries enable row level security;
 alter table screentime.admin_profiles enable row level security;
 alter table screentime.admin_audit_log enable row level security;
+
+drop policy if exists user_profiles_self_select on screentime.user_profiles;
+create policy user_profiles_self_select
+on screentime.user_profiles
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists user_profiles_self_update on screentime.user_profiles;
+create policy user_profiles_self_update
+on screentime.user_profiles
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists organizations_member_select on screentime.organizations;
+create policy organizations_member_select
+on screentime.organizations
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from screentime.organization_memberships
+    where organization_id = organizations.id
+      and user_id = auth.uid()
+  )
+);
+
+drop policy if exists organization_memberships_same_org_select on screentime.organization_memberships;
+create policy organization_memberships_same_org_select
+on screentime.organization_memberships
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from screentime.organization_memberships as memberships
+    where memberships.organization_id = organization_memberships.organization_id
+      and memberships.user_id = auth.uid()
+      and memberships.status = 'active'
+  )
+);
+
+drop policy if exists tracked_sessions_same_org_select on screentime.tracked_sessions;
+create policy tracked_sessions_same_org_select
+on screentime.tracked_sessions
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from screentime.organization_memberships
+    where organization_id = tracked_sessions.organization_id
+      and user_id = auth.uid()
+      and status = 'active'
+  )
+);
 
 drop policy if exists admin_profiles_self_select on screentime.admin_profiles;
 create policy admin_profiles_self_select

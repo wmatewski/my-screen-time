@@ -15,4 +15,7 @@ export const serverEnv = {
   adminInviteRedirectUrl:
     process.env.ADMIN_INVITE_REDIRECT_URL ??
     `${publicEnv.appUrl}/auth/callback?next=/admin/setup-password`,
+  userInviteRedirectUrl:
+    process.env.USER_INVITE_REDIRECT_URL ??
+    `${publicEnv.appUrl}/auth/callback?next=/account/setup-password`,
 } as const;

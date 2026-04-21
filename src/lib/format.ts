@@ -41,7 +41,15 @@ export const formatRole = (role: string) => {
     return "Właściciel";
   }
 
-  return "Administrator";
+  if (role === "admin") {
+    return "Administrator";
+  }
+
+  if (role === "member") {
+    return "Członek organizacji";
+  }
+
+  return "Użytkownik";
 };
 
 export const formatStatus = (status: string) => {

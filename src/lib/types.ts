@@ -8,10 +8,13 @@ export type OperatingSystem =
 
 export type AdminRole = "owner" | "admin";
 export type AdminStatus = "invited" | "active" | "disabled";
+export type OrganizationRole = "owner" | "member";
+export type MembershipStatus = "invited" | "active";
 export type ResultTone = "good" | "balanced" | "high";
 
 export interface ScreenTimeEntry {
   id: string;
+  tracked_session_id: string | null;
   session_id: string;
   screen_time_minutes: number;
   detected_os: OperatingSystem;
@@ -29,6 +32,56 @@ export interface AdminProfile {
   invited_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserProfile {
+  user_id: string;
+  email: string;
+  full_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMembership {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: OrganizationRole;
+  status: MembershipStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMember extends OrganizationMembership {
+  profile: UserProfile | null;
+}
+
+export interface TrackedSession {
+  id: string;
+  organization_id: string;
+  created_by: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackedSessionSummary extends TrackedSession {
+  submissions: number;
+  average_minutes: number | null;
+  last_submission_at: string | null;
+  share_url: string;
+  qr_code_data_url: string;
 }
 
 export interface SessionAnalytics {
@@ -82,6 +135,24 @@ export interface AdminDashboardData {
   ipStatistics: IpStatistic[];
   recentEntries: ScreenTimeEntry[];
   adminProfiles: AdminProfile[];
+}
+
+export interface UserDashboardData {
+  profile: UserProfile;
+  organization: Organization;
+  membership: OrganizationMembership;
+  trackedSessions: TrackedSessionSummary[];
+  organizationMembers: OrganizationMember[];
+  recentEntries: ScreenTimeEntry[];
+}
+
+export interface SharedSessionData {
+  session: TrackedSession;
+  owner: UserProfile | null;
+  latestEntry: ScreenTimeEntry | null;
+  recentEntries: ScreenTimeEntry[];
+  participantEntries: ScreenTimeEntry[];
+  publicEntries: ScreenTimeEntry[];
 }
 
 export interface FlashMessage {

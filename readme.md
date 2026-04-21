@@ -1,6 +1,6 @@
 # My Screen Time
 
-Mobilna aplikacja webowa w Next.js 16.1.6 do zbierania i analizowania czasu przed ekranem z prostym panelem administratora opartym o Supabase Auth.
+Mobilna aplikacja webowa w Next.js 16.1.6 do zbierania i analizowania czasu przed ekranem z publiczną rejestracją użytkowników, własnymi sesjami i panelem administratora opartym o Supabase Auth.
 
 ## Stack
 
@@ -12,10 +12,14 @@ Mobilna aplikacja webowa w Next.js 16.1.6 do zbierania i analizowania czasu prze
 ## Co jest gotowe
 
 - Strona dla użytkownika bez logowania.
+- Publiczna rejestracja i logowanie użytkowników w `/account/register` oraz `/account/login`.
+- Automatyczne tworzenie organizacji dla nowego właściciela i role `owner` / `member`.
+- Panel `/panel` do tworzenia własnych sesji, podglądu live danych i zarządzania członkami organizacji.
+- Publiczne strony `/session/[slug]` do wpisywania czasu przed ekranem dla konkretnej sesji.
+- Link publiczny i kod QR dla każdej utworzonej sesji.
+- Zapraszanie nowych użytkowników do organizacji przez Supabase Auth.
 - Automatyczne wykrywanie systemu: iOS, Android, Windows, macOS, Linux lub `unknown`.
-- Instrukcje, skrót do ustawień systemowych oraz formularz wpisania czasu przed ekranem.
-- Zapisywanie wpisów do Supabase z danymi: `uuid`, `session_id`, `screen_time_minutes`, `date`, `time`, `ip`, `os`, `user_agent`.
-- Sesja użytkownika oparta o cookie, bez konta i bez logowania.
+- Zapisywanie wpisów do Supabase z danymi: `uuid`, `tracked_session_id`, `session_id`, `screen_time_minutes`, `entry_date`, `ip`, `os`, `user_agent`.
 - Panel `/admin` z logowaniem tylko dla administratorów.
 - Zapraszanie nowych administratorów przez Supabase Auth z poziomu panelu.
 - `schema.sql` dla schematu `screentime`.
@@ -31,19 +35,31 @@ Jedyny wyjątek to wbudowany system Supabase Auth, który technicznie działa w 
 1. Uzupełnij wartości w `.env.local`.
 2. W Supabase uruchom `schema.sql`.
 3. W `API Settings` dodaj `screentime` do `Exposed schemas`.
-4. Utwórz pierwszego użytkownika administratora w Supabase Auth.
-5. Nadaj mu rolę poleceniem:
+4. Ustaw redirecty auth dla użytkowników i administratorów.
+5. Utwórz pierwszego użytkownika administratora w Supabase Auth.
+6. Nadaj mu rolę poleceniem:
 
 ```sql
 select screentime.bootstrap_admin('twoj-admin@example.com');
 ```
 
-6. Zainstaluj zależności i uruchom dev server:
+7. Zainstaluj zależności i uruchom dev server:
 
 ```bash
 npm install
 npm run dev
 ```
+
+## Zmienne środowiskowe
+
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `ADMIN_INVITE_REDIRECT_URL`
+- `USER_INVITE_REDIRECT_URL`
+- `NEXT_PUBLIC_RECOMMENDED_DAILY_LIMIT_MINUTES`
+- `NEXT_PUBLIC_SESSION_COOKIE_NAME`
 
 ## Firebase App Hosting
 

@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 
 import "@/app/globals.css";
-
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Aura Clarity",
   description:
-    "Mobilna aplikacja do wpisywania czasu przed ekranem i przeglądania statystyk w panelu administratora.",
+    "Mobilna aplikacja do wpisywania czasu przed ekranem, własnych sesji i przeglądania statystyk organizacji.",
 };
 
 export default function RootLayout({
@@ -22,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={inter.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
