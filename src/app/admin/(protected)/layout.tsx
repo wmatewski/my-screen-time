@@ -7,12 +7,13 @@ export default async function ProtectedAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, profile } = await getAuthenticatedAdmin();
+  const { user, organization, membership } = await getAuthenticatedAdmin();
 
   return (
     <AdminShell
-      email={profile.email || user.email || "administrator"}
-      role={profile.role}
+      email={user.email || "organizator"}
+      organizationName={organization.name}
+      role={membership.role}
       logoutAction={logoutAdminAction}
     >
       {children}

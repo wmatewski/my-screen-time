@@ -1,71 +1,185 @@
 create extension if not exists pgcrypto;
 
-create schema if not exists screentime;
+create schema if not exists flowa;
 
-create type screentime.os_family as enum (
-  'ios',
-  'android',
-  'windows',
-  'macos',
-  'linux',
-  'unknown'
+do $$
+begin
+  create type flowa.os_family as enum (
+    'ios',
+    'android',
+    'windows',
+    'macos',
+    'linux',
+    'unknown'
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  create type flowa.membership_role as enum (
+    'owner',
+    'admin',
+    'moderator'
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  create type flowa.membership_status as enum (
+    'invited',
+    'active',
+    'disabled'
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  create type flowa.session_status as enum (
+    'draft',
+    'active',
+    'completed'
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  create type flowa.age_mode as enum (
+    'fixed',
+    'variable'
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+create table if not exists flowa.profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  email text not null unique,
+  display_name text,
+  default_organization_id uuid,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint flowa_profiles_email_check check (position('@' in email) > 1)
 );
 
-create type screentime.admin_role as enum (
-  'owner',
-  'admin'
-);
-
-create type screentime.admin_status as enum (
-  'invited',
-  'active',
-  'disabled'
-);
-
-create table if not exists screentime.screen_time_entries (
+create table if not exists flowa.organizations (
   id uuid primary key default gen_random_uuid(),
-  session_id uuid not null,
+  name text not null,
+  slug text not null unique,
+  created_by uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists flowa.memberships (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references flowa.organizations (id) on delete cascade,
+  user_id uuid references auth.users (id) on delete set null,
+  invited_email text not null,
+  role flowa.membership_role not null default 'moderator',
+  status flowa.membership_status not null default 'invited',
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint flowa_memberships_email_check check (position('@' in invited_email) > 1),
+  constraint flowa_memberships_org_email_unique unique (organization_id, invited_email)
+);
+
+create table if not exists flowa.sessions (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references flowa.organizations (id) on delete cascade,
+  slug text not null unique,
+  name text not null,
+  description text not null default '',
+  screen_time_limit_minutes integer not null default 60 check (screen_time_limit_minutes between 1 and 1440),
+  age_mode flowa.age_mode not null default 'variable',
+  fixed_age integer,
+  status flowa.session_status not null default 'active',
+  created_by uuid not null references auth.users (id) on delete cascade,
+  starts_at timestamptz not null default timezone('utc', now()),
+  ends_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint flowa_sessions_fixed_age_check check (
+    (age_mode = 'fixed' and fixed_age between 1 and 120)
+    or (age_mode = 'variable' and fixed_age is null)
+  )
+);
+
+create table if not exists flowa.session_collaborators (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references flowa.sessions (id) on delete cascade,
+  membership_id uuid not null references flowa.memberships (id) on delete cascade,
+  role flowa.membership_role not null default 'moderator',
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint flowa_session_collaborators_unique unique (session_id, membership_id)
+);
+
+create table if not exists flowa.session_submissions (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references flowa.sessions (id) on delete cascade,
+  participant_key uuid not null,
+  age integer not null check (age between 1 and 120),
   screen_time_minutes integer not null check (screen_time_minutes between 0 and 1440),
-  detected_os screentime.os_family not null default 'unknown',
+  detected_os flowa.os_family not null default 'unknown',
   ip_address inet,
   user_agent text,
   submitted_at timestamptz not null default timezone('utc', now()),
   entry_date date not null default (timezone('utc', now())::date)
 );
 
-create index if not exists screen_time_entries_session_idx
-  on screentime.screen_time_entries (session_id, submitted_at desc);
-
-create index if not exists screen_time_entries_os_idx
-  on screentime.screen_time_entries (detected_os, submitted_at desc);
-
-create index if not exists screen_time_entries_entry_date_idx
-  on screentime.screen_time_entries (entry_date desc);
-
-create index if not exists screen_time_entries_ip_idx
-  on screentime.screen_time_entries (ip_address);
-
-create table if not exists screentime.admin_profiles (
-  user_id uuid primary key references auth.users (id) on delete cascade,
-  email text not null unique,
-  role screentime.admin_role not null default 'admin',
-  status screentime.admin_status not null default 'invited',
-  invited_by uuid references auth.users (id) on delete set null,
-  created_at timestamptz not null default timezone('utc', now()),
-  updated_at timestamptz not null default timezone('utc', now()),
-  constraint admin_profiles_email_check check (position('@' in email) > 1)
-);
-
-create table if not exists screentime.admin_audit_log (
+create table if not exists flowa.activity_log (
   id bigint generated by default as identity primary key,
+  organization_id uuid not null references flowa.organizations (id) on delete cascade,
+  session_id uuid references flowa.sessions (id) on delete set null,
   actor_user_id uuid references auth.users (id) on delete set null,
-  action text not null,
-  target_email text,
+  activity_type text not null,
+  title text not null,
+  description text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default timezone('utc', now())
 );
 
-create or replace function screentime.set_updated_at()
+create index if not exists flowa_memberships_user_idx
+  on flowa.memberships (user_id, status);
+
+create index if not exists flowa_memberships_org_idx
+  on flowa.memberships (organization_id, status);
+
+create index if not exists flowa_sessions_org_idx
+  on flowa.sessions (organization_id, created_at desc);
+
+create index if not exists flowa_sessions_status_idx
+  on flowa.sessions (status, starts_at desc);
+
+create index if not exists flowa_session_submissions_session_idx
+  on flowa.session_submissions (session_id, submitted_at desc);
+
+create index if not exists flowa_session_submissions_participant_idx
+  on flowa.session_submissions (session_id, participant_key, submitted_at desc);
+
+create index if not exists flowa_session_submissions_entry_date_idx
+  on flowa.session_submissions (entry_date desc);
+
+create index if not exists flowa_session_submissions_os_idx
+  on flowa.session_submissions (detected_os, submitted_at desc);
+
+create index if not exists flowa_activity_log_org_idx
+  on flowa.activity_log (organization_id, created_at desc);
+
+create or replace function flowa.set_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -75,126 +189,156 @@ begin
 end;
 $$;
 
-drop trigger if exists admin_profiles_set_updated_at on screentime.admin_profiles;
-
-create trigger admin_profiles_set_updated_at
-before update on screentime.admin_profiles
+drop trigger if exists flowa_profiles_set_updated_at on flowa.profiles;
+create trigger flowa_profiles_set_updated_at
+before update on flowa.profiles
 for each row
-execute function screentime.set_updated_at();
+execute function flowa.set_updated_at();
 
-create or replace function screentime.is_admin(check_user_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = screentime, auth, public
-as $$
-  select exists (
-    select 1
-    from screentime.admin_profiles
-    where user_id = check_user_id
-      and status = 'active'
-  );
-$$;
+drop trigger if exists flowa_organizations_set_updated_at on flowa.organizations;
+create trigger flowa_organizations_set_updated_at
+before update on flowa.organizations
+for each row
+execute function flowa.set_updated_at();
 
-create or replace function screentime.bootstrap_admin(
-  target_email text,
-  target_role screentime.admin_role default 'owner'
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = screentime, auth, public
-as $$
-declare
-  auth_user_id uuid;
-begin
-  select id
-  into auth_user_id
-  from auth.users
-  where lower(email) = lower(target_email)
-  order by created_at desc
-  limit 1;
+drop trigger if exists flowa_memberships_set_updated_at on flowa.memberships;
+create trigger flowa_memberships_set_updated_at
+before update on flowa.memberships
+for each row
+execute function flowa.set_updated_at();
 
-  if auth_user_id is null then
-    raise exception 'Auth user with email % does not exist. Create it in Supabase Auth first.', target_email;
-  end if;
+drop trigger if exists flowa_sessions_set_updated_at on flowa.sessions;
+create trigger flowa_sessions_set_updated_at
+before update on flowa.sessions
+for each row
+execute function flowa.set_updated_at();
 
-  insert into screentime.admin_profiles (user_id, email, role, status)
-  values (auth_user_id, lower(target_email), target_role, 'active')
-  on conflict (user_id) do update
-    set email = excluded.email,
-        role = excluded.role,
-        status = 'active',
-        updated_at = timezone('utc', now());
-
-  insert into screentime.admin_audit_log (actor_user_id, action, target_email, metadata)
-  values (
-    auth_user_id,
-    'bootstrap_admin',
-    lower(target_email),
-    jsonb_build_object('role', target_role)
-  );
-
-  return auth_user_id;
-end;
-$$;
-
-create or replace view screentime.latest_session_entries as
-select distinct on (session_id)
+create or replace view flowa.latest_session_participants as
+select distinct on (session_id, participant_key)
   id,
   session_id,
+  participant_key,
+  age,
   screen_time_minutes,
   detected_os,
   ip_address,
   user_agent,
   submitted_at,
   entry_date
-from screentime.screen_time_entries
-order by session_id, submitted_at desc;
+from flowa.session_submissions
+order by session_id, participant_key, submitted_at desc;
 
-create or replace view screentime.os_statistics as
+create or replace view flowa.session_age_statistics as
 select
-  detected_os,
+  session_id,
+  case
+    when age < 25 then '18-24'
+    when age < 35 then '25-34'
+    when age < 45 then '35-44'
+    when age < 55 then '45-54'
+    else '55+'
+  end as age_bucket,
   count(*)::integer as participants,
   round(avg(screen_time_minutes)::numeric, 1) as average_minutes,
-  min(screen_time_minutes)::integer as minimum_minutes,
   max(screen_time_minutes)::integer as maximum_minutes
-from screentime.latest_session_entries
-group by detected_os;
+from flowa.latest_session_participants
+group by session_id, 2;
 
-create or replace view screentime.ip_statistics as
+create or replace view flowa.session_overview as
 select
-  coalesce(host(ip_address), 'unknown') as ip_address,
-  count(*)::integer as submissions,
-  max(submitted_at) as last_seen,
-  round(avg(screen_time_minutes)::numeric, 1) as average_minutes
-from screentime.screen_time_entries
-group by coalesce(host(ip_address), 'unknown');
+  sessions.id as session_id,
+  sessions.organization_id,
+  sessions.slug,
+  sessions.name,
+  sessions.status,
+  sessions.screen_time_limit_minutes,
+  sessions.created_at,
+  sessions.starts_at,
+  sessions.ends_at,
+  count(participants.id)::integer as participant_count,
+  round(avg(participants.screen_time_minutes)::numeric, 1) as average_minutes,
+  max(participants.screen_time_minutes)::integer as maximum_minutes,
+  max(participants.submitted_at) as latest_submission_at
+from flowa.sessions as sessions
+left join flowa.latest_session_participants as participants
+  on participants.session_id = sessions.id
+group by
+  sessions.id,
+  sessions.organization_id,
+  sessions.slug,
+  sessions.name,
+  sessions.status,
+  sessions.screen_time_limit_minutes,
+  sessions.created_at,
+  sessions.starts_at,
+  sessions.ends_at;
 
-grant usage on schema screentime to anon, authenticated, service_role;
-grant select on screentime.admin_profiles to authenticated, service_role;
-grant select, insert, update, delete on all tables in schema screentime to service_role;
-grant usage on all sequences in schema screentime to service_role;
-grant select on screentime.latest_session_entries, screentime.os_statistics, screentime.ip_statistics to service_role;
-grant execute on function screentime.is_admin(uuid) to authenticated, service_role;
-grant execute on function screentime.bootstrap_admin(text, screentime.admin_role) to service_role;
+grant usage on schema flowa to authenticated, service_role;
+grant select on flowa.profiles, flowa.memberships, flowa.organizations, flowa.sessions to authenticated, service_role;
+grant select, insert, update, delete on all tables in schema flowa to service_role;
+grant usage on all sequences in schema flowa to service_role;
+grant select on flowa.latest_session_participants, flowa.session_age_statistics, flowa.session_overview to authenticated, service_role;
+grant execute on function flowa.set_updated_at() to service_role;
 
-alter table screentime.screen_time_entries enable row level security;
-alter table screentime.admin_profiles enable row level security;
-alter table screentime.admin_audit_log enable row level security;
+alter table flowa.profiles enable row level security;
+alter table flowa.organizations enable row level security;
+alter table flowa.memberships enable row level security;
+alter table flowa.sessions enable row level security;
+alter table flowa.session_collaborators enable row level security;
+alter table flowa.session_submissions enable row level security;
+alter table flowa.activity_log enable row level security;
 
-drop policy if exists admin_profiles_self_select on screentime.admin_profiles;
-create policy admin_profiles_self_select
-on screentime.admin_profiles
+drop policy if exists flowa_profiles_self_select on flowa.profiles;
+create policy flowa_profiles_self_select
+on flowa.profiles
 for select
 to authenticated
 using (auth.uid() = user_id);
 
-drop policy if exists admin_profiles_self_update on screentime.admin_profiles;
-create policy admin_profiles_self_update
-on screentime.admin_profiles
+drop policy if exists flowa_profiles_self_update on flowa.profiles;
+create policy flowa_profiles_self_update
+on flowa.profiles
 for update
 to authenticated
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+drop policy if exists flowa_memberships_self_select on flowa.memberships;
+create policy flowa_memberships_self_select
+on flowa.memberships
+for select
+to authenticated
+using (
+  auth.uid() = user_id
+  or lower(coalesce(auth.jwt() ->> 'email', '')) = lower(invited_email)
+);
+
+drop policy if exists flowa_organizations_member_select on flowa.organizations;
+create policy flowa_organizations_member_select
+on flowa.organizations
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from flowa.memberships
+    where memberships.organization_id = organizations.id
+      and memberships.status = 'active'
+      and memberships.user_id = auth.uid()
+  )
+);
+
+drop policy if exists flowa_sessions_member_select on flowa.sessions;
+create policy flowa_sessions_member_select
+on flowa.sessions
+for select
+to authenticated
+using (
+  exists (
+    select 1
+    from flowa.memberships
+    where memberships.organization_id = sessions.organization_id
+      and memberships.status = 'active'
+      and memberships.user_id = auth.uid()
+  )
+);

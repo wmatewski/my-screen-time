@@ -9,32 +9,84 @@ import { detectOperatingSystem, isOperatingSystem } from "@/lib/os";
 import { getClientIp } from "@/lib/request";
 import { createSessionId, sessionCookieOptions } from "@/lib/session";
 
-const parseBoundedNumber = (value: FormDataEntryValue | null, fallback = 0) => {
-  const parsed = Number(value);
+const parseScreenTimeValue = (value: FormDataEntryValue | null) => {
+  const rawValue = String(value ?? "")
+    .trim()
+    .replace(/[^\d:]/g, "");
 
-  if (Number.isNaN(parsed) || parsed < 0) {
-    return fallback;
+  if (!rawValue) {
+    return null;
   }
 
-  return Math.floor(parsed);
+  if (rawValue.includes(":")) {
+    const [hoursValue, minutesValue] = rawValue.split(":");
+    const hours = Number(hoursValue || "0");
+    const minutes = Number(minutesValue || "0");
+
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return null;
+    }
+
+    return { hours, minutes, totalMinutes: hours * 60 + minutes };
+  }
+
+  const digits = rawValue.replace(/\D/g, "");
+
+  if (!digits) {
+    return null;
+  }
+
+  if (digits.length <= 2) {
+    const minutes = Number(digits);
+
+    if (Number.isNaN(minutes)) {
+      return null;
+    }
+
+    return { hours: 0, minutes, totalMinutes: minutes };
+  }
+
+  const hours = Number(digits.slice(0, digits.length - 2));
+  const minutes = Number(digits.slice(-2));
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null;
+  }
+
+  return { hours, minutes, totalMinutes: hours * 60 + minutes };
 };
 
-export const submitScreenTimeAction = async (formData: FormData) => {
-  const hours = parseBoundedNumber(formData.get("hours"));
-  const minutes = parseBoundedNumber(formData.get("minutes"));
-  const totalMinutes = hours * 60 + minutes;
+export const submitSessionEntryAction = async (formData: FormData) => {
+  const sessionId = String(formData.get("sessionId") ?? "").trim();
+  const sessionSlug = String(formData.get("sessionSlug") ?? "").trim();
+  const age = Number(formData.get("age") ?? "0");
+  const parsedTime = parseScreenTimeValue(formData.get("screenTimeValue"));
 
-  if (hours > 23 || minutes > 59 || totalMinutes <= 0 || totalMinutes > 1440) {
-    redirect("/?error=invalid-time");
+  if (!sessionId || !sessionSlug) {
+    redirect("/");
+  }
+
+  if (Number.isNaN(age) || age < 1 || age > 120) {
+    redirect(`/flow/${sessionSlug}/age?error=invalid-age`);
+  }
+
+  if (
+    !parsedTime ||
+    parsedTime.hours > 23 ||
+    parsedTime.minutes > 59 ||
+    parsedTime.totalMinutes < 0 ||
+    parsedTime.totalMinutes > 1440
+  ) {
+    redirect(`/flow/${sessionSlug}?error=invalid-time&age=${age}`);
   }
 
   const headerStore = await headers();
   const cookieStore = await cookies();
-  let sessionId = cookieStore.get(publicEnv.sessionCookieName)?.value;
+  let participantKey = cookieStore.get(publicEnv.sessionCookieName)?.value;
 
-  if (!sessionId) {
-    sessionId = createSessionId();
-    cookieStore.set(publicEnv.sessionCookieName, sessionId, sessionCookieOptions);
+  if (!participantKey) {
+    participantKey = createSessionId();
+    cookieStore.set(publicEnv.sessionCookieName, participantKey, sessionCookieOptions);
   }
 
   const submittedOperatingSystem = String(formData.get("operatingSystem") ?? "unknown");
@@ -44,17 +96,44 @@ export const submitScreenTimeAction = async (formData: FormData) => {
     : detectedOperatingSystem;
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("screen_time_entries").insert({
+  const { data: sessionRow, error: sessionError } = await supabase
+    .from("sessions")
+    .select("id, name, organization_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (sessionError || !sessionRow) {
+    redirect(`/flow/${sessionSlug}?error=save-failed&age=${age}`);
+  }
+
+  const { error } = await supabase.from("session_submissions").insert({
     session_id: sessionId,
-    screen_time_minutes: totalMinutes,
+    participant_key: participantKey,
+    age,
+    screen_time_minutes: parsedTime.totalMinutes,
     detected_os: operatingSystem,
     ip_address: getClientIp(headerStore),
     user_agent: headerStore.get("user-agent"),
   });
 
   if (error) {
-    redirect("/?error=save-failed");
+    redirect(`/flow/${sessionSlug}?error=save-failed&age=${age}`);
   }
 
-  redirect("/?saved=1");
+  await supabase.from("activity_log").insert({
+    organization_id: sessionRow.organization_id,
+    session_id: sessionRow.id,
+    activity_type: "submission_received",
+    title: `Nowe zgłoszenie do sesji \"${sessionRow.name}\"`,
+    description: `Uczestnik przesłał wynik ${parsedTime.totalMinutes} min.`,
+    metadata: {
+      age,
+      screenTimeMinutes: parsedTime.totalMinutes,
+      operatingSystem,
+    },
+  });
+
+  redirect(`/flow/${sessionSlug}/submitted?saved=1&age=${age}`);
 };
+
+export const submitScreenTimeAction = submitSessionEntryAction;

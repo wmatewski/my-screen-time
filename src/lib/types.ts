@@ -1,49 +1,25 @@
-export type OperatingSystem =
-  | "ios"
-  | "android"
-  | "windows"
-  | "macos"
-  | "linux"
-  | "unknown";
+import type { Database } from "@/lib/database.types";
 
-export type AdminRole = "owner" | "admin";
-export type AdminStatus = "invited" | "active" | "disabled";
-export type ResultTone = "good" | "balanced" | "high";
+export type OperatingSystem = Database["flowa"]["Enums"]["os_family"];
+export type MembershipRole = Database["flowa"]["Enums"]["membership_role"];
+export type MembershipStatus = Database["flowa"]["Enums"]["membership_status"];
+export type SessionStatus = Database["flowa"]["Enums"]["session_status"];
+export type AgeMode = Database["flowa"]["Enums"]["age_mode"];
+export type ResultTone = "optimal" | "warning" | "critical";
 
-export interface ScreenTimeEntry {
-  id: string;
-  session_id: string;
-  screen_time_minutes: number;
-  detected_os: OperatingSystem;
-  ip_address: string | null;
-  user_agent: string | null;
-  submitted_at: string;
-  entry_date: string;
-}
+export type Profile = Database["flowa"]["Tables"]["profiles"]["Row"];
+export type Organization = Database["flowa"]["Tables"]["organizations"]["Row"];
+export type Membership = Database["flowa"]["Tables"]["memberships"]["Row"];
+export type Session = Database["flowa"]["Tables"]["sessions"]["Row"];
+export type SessionCollaborator = Database["flowa"]["Tables"]["session_collaborators"]["Row"];
+export type SessionSubmission = Database["flowa"]["Tables"]["session_submissions"]["Row"];
+export type ActivityLog = Database["flowa"]["Tables"]["activity_log"]["Row"];
+export type SessionOverview = Database["flowa"]["Views"]["session_overview"]["Row"];
+export type SessionAgeStatistic = Database["flowa"]["Views"]["session_age_statistics"]["Row"];
 
-export interface AdminProfile {
-  user_id: string;
-  email: string;
-  role: AdminRole;
-  status: AdminStatus;
-  invited_by: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface SessionAnalytics {
-  recommendedMinutes: number;
-  overallAverageMinutes: number | null;
-  osAverageMinutes: number | null;
-  lowerPercentage: number;
-  higherPercentage: number;
-  participantCount: number;
-  alignmentScore: number;
-  resultLabel: string;
-  resultTone: ResultTone;
-  summary: string;
-  guidance: string;
-  trendPercentage: number | null;
+export interface FlashMessage {
+  type: "success" | "error" | "info";
+  message: string;
 }
 
 export interface OperatingSystemConfig {
@@ -58,33 +34,96 @@ export interface OperatingSystemConfig {
   steps: string[];
 }
 
-export interface OperatingSystemSummary {
-  detected_os: OperatingSystem;
-  participants: number;
-  average_minutes: number;
-  minimum_minutes: number;
-  maximum_minutes: number;
+export interface OrganizationMember {
+  membershipId: string;
+  userId: string | null;
+  email: string;
+  displayName: string;
+  initials: string;
+  role: MembershipRole;
+  status: MembershipStatus;
+  createdAt: string;
 }
 
-export interface IpStatistic {
-  ip_address: string;
-  submissions: number;
-  last_seen: string;
-  average_minutes: number;
-}
-
-export interface AdminDashboardData {
+export interface DashboardMetricSnapshot {
+  totalSessions: number;
   totalParticipants: number;
-  totalSubmissions: number;
-  todaySubmissions: number;
-  overallAverageMinutes: number | null;
-  osStatistics: OperatingSystemSummary[];
-  ipStatistics: IpStatistic[];
-  recentEntries: ScreenTimeEntry[];
-  adminProfiles: AdminProfile[];
+  averageMinutes: number | null;
+  sessionTrend: number | null;
+  averageTrend: number | null;
 }
 
-export interface FlashMessage {
-  type: "success" | "error" | "info";
-  message: string;
+export interface DashboardActivity {
+  id: string;
+  title: string;
+  description: string | null;
+  tag: string;
+  createdAt: string;
+}
+
+export interface OrganizerDashboardData {
+  metrics: DashboardMetricSnapshot;
+  sessions: SessionOverview[];
+  recentActivities: DashboardActivity[];
+  members: OrganizationMember[];
+}
+
+export interface FocusScore {
+  score: number;
+  balancedPercentage: number;
+  elevatedPercentage: number;
+  criticalPercentage: number;
+  label: string;
+}
+
+export interface ParticipantInsight {
+  tone: ResultTone;
+  label: string;
+  description: string;
+  deltaPercentage: number | null;
+  cohortAverageMinutes: number | null;
+}
+
+export interface SessionParticipantRow {
+  id: string;
+  participantKey: string;
+  label: string;
+  age: number;
+  screenTimeMinutes: number;
+  statusTone: ResultTone;
+  statusLabel: string;
+  submittedAt: string;
+}
+
+export interface SessionStatisticsData {
+  session: Session;
+  overview: SessionOverview | null;
+  ageStatistics: SessionAgeStatistic[];
+  participants: SessionParticipantRow[];
+  collaborators: OrganizationMember[];
+  focusScore: FocusScore;
+}
+
+export interface SessionSettingsData {
+  session: Session;
+  overview: SessionOverview | null;
+  members: OrganizationMember[];
+  sessionCollaboratorIds: string[];
+}
+
+export interface OrganizationMembersData {
+  members: OrganizationMember[];
+  sessions: SessionOverview[];
+  currentSession: SessionOverview | null;
+  sessionCollaborators: OrganizationMember[];
+}
+
+export interface SessionExperienceData {
+  organization: Organization;
+  session: Session;
+  latestSubmission: SessionSubmission | null;
+  participantCount: number;
+  sessionAverageMinutes: number | null;
+  detectedOperatingSystem: OperatingSystem;
+  participantInsight: ParticipantInsight | null;
 }

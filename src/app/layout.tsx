@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 
 import "@/app/globals.css";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
+  variable: "--font-manrope",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Aura Clarity",
+  title: "Wojticore Flowa",
   description:
-    "Mobilna aplikacja do wpisywania czasu przed ekranem i przeglądania statystyk w panelu administratora.",
+    "Platforma Wojticore Flowa do zarządzania sesjami, organizacjami i raportami czasu przed ekranem.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={inter.variable}>{children}</body>
+      <body className={manrope.variable}>{children}</body>
     </html>
   );
 }

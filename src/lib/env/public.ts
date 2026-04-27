@@ -18,7 +18,7 @@ export const publicEnv = {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   ),
   sessionCookieName:
-    process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME ?? "st_session_id",
+    process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME ?? "flowa_session_id",
   recommendedDailyLimitMinutes: Number.isNaN(recommendedDailyLimitMinutes)
     ? 120
     : recommendedDailyLimitMinutes,

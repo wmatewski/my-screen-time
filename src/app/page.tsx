@@ -1,97 +1,128 @@
-import { Activity, ShieldCheck } from "lucide-react";
-import { cookies, headers } from "next/headers";
+import { ArrowRight, ChartColumn, Code2, Leaf, Presentation } from "lucide-react";
+import Link from "next/link";
 
-import { submitScreenTimeAction } from "@/app/actions";
-import { ScreenTimeExperience } from "@/components/user/screen-time-experience";
-import { buildSessionAnalytics } from "@/lib/analytics";
-import { getUserExperienceData } from "@/lib/data";
-import { publicEnv } from "@/lib/env/public";
-import { detectOperatingSystem } from "@/lib/os";
-import type { FlashMessage } from "@/lib/types";
-
-const getFlashMessage = (code: string | undefined): FlashMessage | null => {
-  if (code === "saved") {
-    return {
-      type: "success",
-      message: "Wynik został zapisany i przypisany do bieżącej lokalnej sesji.",
-    };
-  }
-
-  if (code === "invalid-time") {
-    return {
-      type: "error",
-      message: "Podaj poprawny czas w zakresie od 1 minuty do 23 godzin 59 minut.",
-    };
-  }
-
-  if (code === "save-failed") {
-    return {
-      type: "error",
-      message: "Nie udało się zapisać wyniku w bazie danych. Sprawdź konfigurację Supabase.",
-    };
-  }
-
-  return null;
-};
-
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const cookieStore = await cookies();
-  const headerStore = await headers();
-  const sessionId = cookieStore.get(publicEnv.sessionCookieName)?.value ?? "";
-  const detectedOperatingSystem = detectOperatingSystem(headerStore.get("user-agent"));
-  const { latestEntry, recentEntries, participantEntries } = await getUserExperienceData(
-    sessionId,
-  );
-  const analytics = buildSessionAnalytics({
-    latestEntry,
-    participantEntries,
-    sessionEntries: recentEntries,
-  });
-  const flash = getFlashMessage(
-    params.error
-      ? String(params.error)
-      : params.saved
-        ? "saved"
-        : undefined,
-  );
-
+export default function HomePage() {
   return (
-    <main className="site-shell">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark">
-            <Activity size={22} />
-          </div>
-          <div className="brand-copy">
-            <strong>Aura Clarity</strong>
-            <span>Twoja jasna analiza dnia</span>
-          </div>
-        </div>
+    <>
+      <header className="wf-topbar">
+        <div className="wf-topbar-inner">
+          <Link className="wf-brand" href="/">
+            <div className="wf-brand-mark">
+              <Leaf size={16} />
+            </div>
+            <span>Wojticore Flowa</span>
+          </Link>
 
-        <div className="eyebrow">
-          <ShieldCheck size={16} />
-          Sesja lokalna bez logowania
+          <nav className="wf-nav">
+            <Link className="wf-nav-link" href="/admin">
+              Dashboard
+            </Link>
+            <Link className="wf-nav-link" href="/admin/sessions">
+              Sesje
+            </Link>
+            <Link className="wf-nav-link" href="/guides">
+              Odkrywaj
+            </Link>
+          </nav>
+
+          <Link className="wf-btn wf-btn-primary" href="/auth">
+            Zaloguj się
+          </Link>
         </div>
       </header>
 
-      <ScreenTimeExperience
-        initialOperatingSystem={detectedOperatingSystem}
-        latestEntry={latestEntry}
-        recentEntries={recentEntries}
-        analytics={analytics}
-        flash={flash}
-        submitAction={submitScreenTimeAction}
-      />
+      <main className="wf-public-page">
+        <section className="wf-shell wf-hero">
+          <div className="wf-hero-copy">
+            <div className="wf-badge">Cyfrowe Zdrowie Platforma Open-Source</div>
+            <h1>Zadbaj o Zdrowie Cyfrowe Swojej Społeczności</h1>
+            <p>
+              Organizuj angażujące, interaktywne prezentacje i śledź statystyki czasu przed ekranem w sposób przejrzysty. Flowa to platforma stworzona z myślą o spokoju i efektywności.
+            </p>
+            <div className="wf-hero-actions">
+              <Link className="wf-btn wf-btn-primary" href="/auth?mode=register">
+                Rozpocznij teraz
+                <ArrowRight size={18} />
+              </Link>
+              <Link className="wf-btn wf-btn-secondary" href="/guides">
+                Dowiedz się więcej
+              </Link>
+            </div>
+          </div>
 
-      <footer className="page-footer" style={{ marginTop: 20 }}>
-        Dane użytkownika są wiązane z lokalną sesją cookie, a nie z kontem. Dzięki temu możesz
-        wracać do swoich wpisów w tej samej przeglądarce bez rejestracji.
+          <div className="wf-hero-media">
+            <img
+              alt="Podgląd pulpitu Wojticore Flowa"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUa77x_dzhzscRtUoDxS3eAJxiFKbVXzUOO-lTGvDYC01J5LDyUlOV4rP0VqQBdR47MoyKv3XSlEiLAZHX0Q8-aMc5BgOCWLfcefo-yOI1hMvDFzdTHnqeWhqfBqX81v_YuOByRlhab8KCRlWegjqVy_AVmJUwaVjHO0kKYcU3xSkEjMJmcIbB4h8k5MCVKxe4M09NF2i-ouA9RafhROo0de5kwYdVew5LTeNM4tY0Yzuip8GZlSPGhlEhc6dscd5CE0JB-gopa3ux"
+            />
+            <div className="wf-hero-overlay">
+              <div>
+                <div style={{ fontWeight: 700 }}>Poziom Skupienia</div>
+                <div className="wf-footer-muted">Optymalny</div>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "var(--primary)" }}>85%</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="wf-feature-section">
+          <div className="wf-shell">
+            <header style={{ textAlign: "center", marginBottom: 36 }}>
+              <h2 style={{ margin: 0, fontSize: 40, letterSpacing: "-0.04em" }}>Dlaczego Wojticore Flowa?</h2>
+              <p className="wf-page-subtitle" style={{ maxWidth: 720, margin: "12px auto 0" }}>
+                Narzędzia zaprojektowane z myślą o minimalizacji cyfrowego stresu i maksymalizacji wartości płynącej ze spotkań.
+              </p>
+            </header>
+
+            <div className="wf-feature-grid">
+              <article className="wf-feature-card">
+                <div className="wf-feature-icon">
+                  <Presentation size={24} />
+                </div>
+                <h3>Interaktywne Sesje</h3>
+                <p>
+                  Twórz prezentacje, które angażują uczestników bez przebodźcowania. Wbudowane narzędzia do ankiet i Q&amp;A działają w tle, nie zakłócając głównego przekazu.
+                </p>
+              </article>
+              <article className="wf-feature-card">
+                <div className="wf-feature-icon">
+                  <ChartColumn size={24} />
+                </div>
+                <h3>Dokładne Statystyki</h3>
+                <p>
+                  Monitoruj czas przed ekranem i poziom zaangażowania za pomocą przejrzystych, łagodnych dla oka wykresów. Analizuj dane, aby budować zdrowsze nawyki cyfrowe.
+                </p>
+              </article>
+              <article className="wf-feature-card">
+                <div className="wf-feature-icon" style={{ background: "rgba(108, 248, 187, 0.24)", color: "#006c49" }}>
+                  <Code2 size={24} />
+                </div>
+                <h3>Darmowe i Open-Source</h3>
+                <p>
+                  Platforma w pełni darmowa, tworzona przez społeczność dla społeczności. Kod źródłowy jest otwarty, co gwarantuje transparentność i bezpieczeństwo Twoich danych.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="wf-footer">
+        <div className="wf-footer-inner">
+          <div className="wf-brand">
+            <div className="wf-brand-mark">
+              <Leaf size={16} />
+            </div>
+            <span>Wojticore Flowa</span>
+          </div>
+          <div>© 2024 Wojticore Flowa. Wszystkie prawa zastrzeżone.</div>
+          <nav className="wf-footer-nav">
+            <Link href="/guides">Dokumentacja Open-Source</Link>
+            <Link href="/">flowa.wojticore.pl</Link>
+            <Link href="/guides">Polityka Prywatności</Link>
+          </nav>
+        </div>
       </footer>
-    </main>
+    </>
   );
 }
