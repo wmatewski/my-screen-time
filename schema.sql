@@ -189,6 +189,30 @@ begin
 end;
 $$;
 
+drop trigger if exists user_profiles_set_updated_at on screentime.user_profiles;
+create trigger user_profiles_set_updated_at
+before update on screentime.user_profiles
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists organizations_set_updated_at on screentime.organizations;
+create trigger organizations_set_updated_at
+before update on screentime.organizations
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists organization_memberships_set_updated_at on screentime.organization_memberships;
+create trigger organization_memberships_set_updated_at
+before update on screentime.organization_memberships
+for each row
+execute function screentime.set_updated_at();
+
+drop trigger if exists tracked_sessions_set_updated_at on screentime.tracked_sessions;
+create trigger tracked_sessions_set_updated_at
+before update on screentime.tracked_sessions
+for each row
+execute function screentime.set_updated_at();
+
 drop trigger if exists flowa_profiles_set_updated_at on flowa.profiles;
 create trigger flowa_profiles_set_updated_at
 before update on flowa.profiles
@@ -216,6 +240,7 @@ execute function flowa.set_updated_at();
 create or replace view flowa.latest_session_participants as
 select distinct on (session_id, participant_key)
   id,
+  tracked_session_id,
   session_id,
   participant_key,
   age,

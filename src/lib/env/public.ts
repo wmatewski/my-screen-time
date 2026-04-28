@@ -12,6 +12,7 @@ const recommendedDailyLimitMinutes = Number(
 
 export const publicEnv = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  projectDomain: process.env.NEXT_PUBLIC_PROJECT_DOMAIN ?? "",
   supabaseUrl: required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL),
   supabasePublishableKey: required(
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",

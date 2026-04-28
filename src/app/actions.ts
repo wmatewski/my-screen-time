@@ -89,11 +89,13 @@ export const submitSessionEntryAction = async (formData: FormData) => {
     cookieStore.set(publicEnv.sessionCookieName, participantKey, sessionCookieOptions);
   }
 
-  const submittedOperatingSystem = String(formData.get("operatingSystem") ?? "unknown");
+  const submittedOperatingSystem = String(formData.get("operatingSystem") ?? "").trim();
   const detectedOperatingSystem = detectOperatingSystem(headerStore.get("user-agent"));
-  const operatingSystem = isOperatingSystem(submittedOperatingSystem)
+  const operatingSystem =
+    submittedOperatingSystem && submittedOperatingSystem !== "unknown" && isOperatingSystem(submittedOperatingSystem)
     ? submittedOperatingSystem
     : detectedOperatingSystem;
+  const trackedSessionId = String(formData.get("trackedSessionId") ?? "").trim() || null;
 
   const supabase = createSupabaseAdminClient();
   const { data: sessionRow, error: sessionError } = await supabase

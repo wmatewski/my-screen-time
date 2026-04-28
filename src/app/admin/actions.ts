@@ -8,7 +8,7 @@ import {
   getAuthenticatedAdmin,
 } from "@/lib/admin-auth";
 import type { Database, Json } from "@/lib/database.types";
-import { serverEnv } from "@/lib/env/server";
+import { getAdminInviteRedirectUrl } from "@/lib/env/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -258,7 +258,7 @@ export const inviteAdminAction = async (formData: FormData) => {
 
   if (!existingUserId) {
     const inviteResult = await adminClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: serverEnv.adminInviteRedirectUrl,
+      redirectTo: getAdminInviteRedirectUrl(),
       data: {
         invitedBy: user.id,
         organizationId: organization.id,
